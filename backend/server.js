@@ -49,9 +49,29 @@ const setupAbsentMarkingScheduler = () => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/mahasiswa', require('./routes/mahasiswaRoutes'));
 
+// Endpoint Cron Trigger untuk dipanggil secara eksternal (misal lewat cron-job.org)
+app.get('/api/cron-trigger', async (req, res) => {
+    const authHeader = req.headers['authorization'];
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    console.log(`[${new Date().toLocaleString()}] Menjalankan cron job absensi via trigger API...`);
+    try {
+        await mahasiswaController.markAbsentStudentsDaily();
+        res.status(200).json({ success: true, message: 'Cron job executed successfully' });
+    } catch (error) {
+        console.error('Error pada cron trigger:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Aman digunakan! inject dummy function agar adminRoutes tidak broken
 app.use('/api/admin', require('./routes/adminRoutes')(setupAbsentMarkingScheduler));
 
-// --- Mulai Server ---
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
+// --- Mulai Server (Hanya jika dijalankan secara lokal) ---
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
+}
+
+module.exports = app;
