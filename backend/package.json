@@ -1,0 +1,44 @@
+{
+  "name": "absensi-frontend",
+  "version": "1.0.0",
+  "description": "Frontend sistem absensi wajah",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "bcrypt": "^6.0.0",
+    "bootstrap": "^5.3.6",
+    "canvas": "^3.2.3",
+    "chart.js": "^4.4.9",
+    "cors": "^2.8.6",
+    "dayjs": "^1.11.20",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "face-api.js": "^0.22.2",
+    "file-saver": "^2.0.5",
+    "jsonwebtoken": "^9.0.3",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
+    "lucide-react": "^0.503.0",
+    "node-cron": "^4.2.1",
+    "pg": "^8.20.0",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.10",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.5.0",
+    "recharts": "^2.15.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.0.0"
+  }
+}
