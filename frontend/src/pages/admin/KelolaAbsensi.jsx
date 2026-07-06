@@ -153,7 +153,7 @@ const KelolaAbsensi = () => {
       } else {
         toast.error("Gagal akses lokasi perangkat!");
       }
-    }, { enableHighAccuracy: true, timeout: 8000 });
+    }, { enableHighAccuracy: false, timeout: 15000 });
   };
 
   const handleRadiusChange = (val) => {
