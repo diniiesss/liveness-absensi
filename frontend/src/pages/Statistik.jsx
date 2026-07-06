@@ -132,7 +132,6 @@ const Statistik = () => {
 
   return (
     <div className="p-2 md:p-8 font-poppins min-h-screen animate-in fade-in duration-700">
-      <Toaster />
       
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 px-4">

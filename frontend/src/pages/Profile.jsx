@@ -117,7 +117,6 @@ const Profile = () => {
 
   return (
     <div className="p-2 md:p-8 font-poppins min-h-screen">
-      <Toaster />
       
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">

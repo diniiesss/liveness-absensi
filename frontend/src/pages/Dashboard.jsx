@@ -258,7 +258,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-2 md:p-8 font-poppins min-h-screen animate-in fade-in duration-700">
-      <Toaster />
       
       {/* 1. HEADER (DI LUAR KOTAK PUTIH) */}
       <div className="mb-6 px-2 flex items-center gap-3">
