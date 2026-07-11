@@ -19,7 +19,7 @@ const Login = () => {
     setStatus("");
     try {
       const isAdmin = identifier.includes("@");
-      const endpoint = isAdmin ? "admin/login" : "mahasiswa/login";
+      const endpoint = isAdmin ? "auth/login/admin" : "auth/login/mahasiswa";
       const payload = isAdmin ? { email: identifier.trim(), password } : { npm: identifier.trim(), password };
 
       const res = await axios.post(`http://localhost:5000/api/${endpoint}`, payload);
