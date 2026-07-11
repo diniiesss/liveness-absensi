@@ -7,7 +7,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 // ---------------------------
 // 🔹 Route Publik
 // ---------------------------
-router.post('/login', adminController.loginAdmin);
 router.post('/reset-password', adminController.resetPasswordAdmin);
 
 // ---------------------------

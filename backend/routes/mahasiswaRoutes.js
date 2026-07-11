@@ -10,7 +10,6 @@ const mahasiswaModel = require('../models/mahasiswaModel');
 
 // --- Rute Registrasi & Login ---
 router.post('/register', mahasiswaController.registerMahasiswa);
-router.post('/login', mahasiswaController.login);
 
 // --- UPDATE BARU: RUTE PENCEGAHAN DUPLIKASI ---
 // Cek NPM (digunakan di Step 1 Registrasi)
