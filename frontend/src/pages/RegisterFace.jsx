@@ -28,8 +28,8 @@ const RegisterFace = () => {
   // --- STATE UNTUK MENAMPUNG URUTAN RANDOM ---
   const [activeChallenges, setActiveChallenges] = useState([]);
 
-  // --- POOL GERAKAN ---
-  const challengePool = [
+  // --- POOL GERAKAN ----
+  const challengeLibrary = [
     { id: "smile", label: "Tersenyumlah 😊", check: (d) => d.expressions.happy > 0.75 },
     { id: "left", label: "Menoleh ke Kiri ⬅️", check: (d) => {
         const jaw = d.landmarks.getJawOutline();
@@ -105,7 +105,7 @@ const RegisterFace = () => {
       if (videoRef.current) videoRef.current.srcObject = stream;
 
       // --- LOGIKA RANDOM DISINI ---
-      const shuffled = [...challengePool].sort(() => Math.random() - 0.5);
+      const shuffled = [...challengeLibrary].sort(() => Math.random() - 0.5);
       setActiveChallenges(shuffled);
       
       let currentStep = 0;
