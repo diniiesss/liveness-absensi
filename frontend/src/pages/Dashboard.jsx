@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as faceapi from "face-api.js";
 import axios from "axios";
 import { Camera, RefreshCw, CheckCircle, BookOpen, Clock, MapPin, ShieldCheck, ScanFace } from "lucide-react";
-import { MapContainer, TileLayer, Circle, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import toast, { Toaster } from 'react-hot-toast';
 import logoImage from "../components/logo.webp";
@@ -379,7 +379,16 @@ const Dashboard = () => {
                 >
                   <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                   {campusConfig.latitude !== 0 && campusConfig.longitude !== 0 && (
-                    <Circle center={[campusConfig.latitude, campusConfig.longitude]} radius={campusConfig.radius} pathOptions={{ color: '#A855F7', fillColor: 'white', fillOpacity: 0.1, weight: 1 }} />
+                    <>
+                      <Circle 
+                        center={[campusConfig.latitude, campusConfig.longitude]} 
+                        radius={campusConfig.radius} 
+                        pathOptions={{ color: '#A855F7', fillColor: '#A855F7', fillOpacity: 0.2, weight: 2 }} 
+                      />
+                      <Marker position={[campusConfig.latitude, campusConfig.longitude]}>
+                        <Popup>Lokasi Presensi Kampus</Popup>
+                      </Marker>
+                    </>
                   )}
                   <Marker position={[userPos.lat, userPos.lng]} />
                   <MapController center={userPos} />
