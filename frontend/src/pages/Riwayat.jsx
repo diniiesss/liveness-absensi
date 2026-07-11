@@ -388,20 +388,22 @@ const Riwayat = () => {
           </div>
 
           {/* Download Buttons Section */}
-          <div className="flex justify-end items-center gap-3 pt-8 border-t border-[#3a2e4b]">
-            <p className="text-[12px] font-black text-[#3a2e4b] uppercase tracking-widest mr-2">Unduh Laporan:</p>
-            <button 
-              onClick={downloadExcel} 
-              className="bg-[#F8F4FF] text-[#3a2e4b] px-6 py-3.5 rounded-2xl flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:bg-[#3a2e4b] hover:text-[#F8F4FF] transition-all shadow-sm active:scale-95"
-            >
-              <Download size={16} /> Excel
-            </button>
-            <button 
-              onClick={downloadPDF} 
-              className="bg-[#3a2e4b] text-[#F8F4FF] px-8 py-3.5 rounded-2xl flex items-center gap-2 font-bold text-xs uppercase tracking-widest hover:bg-[#F8F4FF] hover:text-[#3a2e4b] transition-all shadow-lg active:scale-95"
-            >
-              <FileText size={16} /> PDF
-            </button>
+          <div className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3 pt-8 border-t border-[#3a2e4b]">
+            <p className="text-[12px] font-black text-[#3a2e4b] uppercase tracking-widest text-center sm:text-left sm:mr-2 mb-2 sm:mb-0">Unduh Laporan:</p>
+            <div className="flex flex-row gap-3 justify-center w-full sm:w-auto">
+              <button 
+                onClick={downloadExcel} 
+                className="flex-1 sm:flex-initial bg-[#F8F4FF] text-[#3a2e4b] px-6 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest hover:bg-[#3a2e4b] hover:text-[#F8F4FF] transition-all shadow-sm active:scale-95"
+              >
+                <Download size={16} /> Excel
+              </button>
+              <button 
+                onClick={downloadPDF} 
+                className="flex-1 sm:flex-initial bg-[#3a2e4b] text-[#F8F4FF] px-8 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest hover:bg-[#F8F4FF] hover:text-[#3a2e4b] transition-all shadow-lg active:scale-95"
+              >
+                <FileText size={16} /> PDF
+              </button>
+            </div>
           </div>
         </div>
 

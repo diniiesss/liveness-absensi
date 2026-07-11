@@ -21,7 +21,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className={`flex flex-col md:items-center w-full md:w-auto md:sticky md:h-[calc(100vh-2rem)] md:top-4 ${showLogoutModal ? 'z-[9999]' : 'z-50'}`}>
+    <div className={`flex flex-col md:items-center w-full md:w-auto md:sticky md:h-[calc(100vh-2rem)] md:top-4 ${showLogoutModal ? 'z-[9999]' : 'z-[1000]'}`}>
       
       {/* 1. LOGO DILUAR KOTAK PUTIH (DISEMBUNYIKAN DI MOBILE, MUNCUL DI DESKTOP) */}
       <div className="hidden md:flex w-16 h-16 items-center justify-center mb-6 transition-transform hover:scale-105 p-1 self-center">
@@ -32,7 +32,7 @@ const Sidebar = () => {
        </div>
 
       {/* 2. KOTAK PUTIH (SIDEBAR) */}
-      <aside className="fixed bottom-4 left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto w-auto md:w-20 bg-[#52426b] rounded-[1.5rem] md:rounded-[2.5rem] shadow-xl flex flex-row md:flex-col items-center px-2 md:px-0 py-2 md:py-8 justify-between md:flex-1 z-50 border border-purple-900/10 md:border-none">
+      <aside className="fixed bottom-4 left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto w-auto md:w-20 bg-[#52426b] rounded-[1.5rem] md:rounded-[2.5rem] shadow-xl flex flex-row md:flex-col items-center px-2 md:px-0 py-2 md:py-8 justify-between md:flex-1 z-[1000] border border-purple-900/10 md:border-none">
         <div className="flex flex-row md:flex-col items-center justify-around w-full md:w-auto md:space-y-8">
           {menu.map((item, index) => (
             <NavLink 

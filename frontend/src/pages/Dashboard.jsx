@@ -375,7 +375,7 @@ const Dashboard = () => {
               {userPos ? (
                 <MapContainer 
                   center={[userPos.lat, userPos.lng]} zoom={17} style={{ height: '100%', width: '100%' }}
-                  dragging={false} scrollWheelZoom={false} zoomControl={false}
+                  dragging={true} scrollWheelZoom={true} zoomControl={true}
                 >
                   <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                   {campusConfig.latitude !== 0 && campusConfig.longitude !== 0 && (
