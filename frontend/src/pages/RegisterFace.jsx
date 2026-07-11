@@ -30,17 +30,20 @@ const RegisterFace = () => {
 
   // --- POOL GERAKAN ---
   const challengePool = [
-    { id: "smile", label: "Tersenyumlah 😊", check: (d) => d.expressions.happy > 0.85 },
+    { id: "smile", label: "Tersenyumlah 😊", check: (d) => d.expressions.happy > 0.75 },
     { id: "left", label: "Menoleh ke Kiri ⬅️", check: (d) => {
         const jaw = d.landmarks.getJawOutline();
         const nose = d.landmarks.getNose()[0];
-        // Sumbu perhitungan dibalik agar sesuai dengan arah menoleh pada kamera mirror
-        return (jaw[16].x - nose.x) < (nose.x - jaw[0].x) * 0.40;
+        const faceWidth = jaw[16].x - jaw[0].x;
+        const nosePos = (nose.x - jaw[0].x) / faceWidth;
+        return nosePos > 0.62;
     }},
     { id: "right", label: "Menoleh ke Kanan ➡️", check: (d) => {
         const jaw = d.landmarks.getJawOutline();
         const nose = d.landmarks.getNose()[0];
-        return (nose.x - jaw[0].x) < (jaw[16].x - nose.x) * 0.40;
+        const faceWidth = jaw[16].x - jaw[0].x;
+        const nosePos = (nose.x - jaw[0].x) / faceWidth;
+        return nosePos < 0.38;
     }}
   ];
 
