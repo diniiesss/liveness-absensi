@@ -330,7 +330,7 @@ const RegisterFace = () => {
                   <button 
                     onClick={handleFinalRegister} 
                     disabled={loading} 
-                    className="flex-[1.5] bg-[#e4d6f3] hover:bg-[#3a2e4b] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md text-xs transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[1.5] bg-[#e4d6f7] hover:bg-[#d8c5ef] text-[#52426b] font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md text-xs transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? <Loader2 className="animate-spin" size={14} /> : <>Konfirmasi <CheckCircle2 size={14} /></>}
                   </button>
