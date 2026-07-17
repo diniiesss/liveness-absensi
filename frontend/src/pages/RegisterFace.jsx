@@ -319,20 +319,20 @@ const RegisterFace = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex gap-3">
                   <button 
                     onClick={() => { setStep(1); setErrorMessage(""); }} 
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 uppercase text-[11px] tracking-widest transition-all active:scale-95 shadow-sm"
+                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 text-xs transition-all active:scale-95 border border-red-100"
                   >
-                    <RefreshCw size={15} /> Scan Ulang
+                    <RefreshCw size={14} /> Scan Ulang
                   </button>
                   
                   <button 
                     onClick={handleFinalRegister} 
                     disabled={loading} 
-                    className="flex-[2] bg-[#e4d6f7] hover:bg-[#d8c5ef] text-[#52426b] font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg uppercase text-[11px] tracking-widest transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[1.5] bg-[#52426b] hover:bg-[#3a2e4b] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md text-xs transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? <Loader2 className="animate-spin" size={15} /> : <>Daftar Sekarang <CheckCircle2 size={15} /></>}
+                    {loading ? <Loader2 className="animate-spin" size={14} /> : <>Konfirmasi <CheckCircle2 size={14} /></>}
                   </button>
                 </div>
               </div>
