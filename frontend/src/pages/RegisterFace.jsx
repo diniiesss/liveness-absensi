@@ -285,33 +285,55 @@ const RegisterFace = () => {
 
             {step === 3 && (
               <div className="animate-in fade-in slide-in-from-bottom duration-500">
-                <div className="mb-8 text-center md:text-left">
+                <div className="mb-6 text-center md:text-left">
                   <h2 className="text-3xl font-black text-[#e4d6f3] uppercase italic leading-none">Review Data</h2>
-                  <p className="text-green-600 font-bold mt-2 text-[12px] uppercase tracking-[0.3em]">Data & Wajah Terverifikasi</p>
+                  <p className="text-green-400 font-bold mt-2 text-[10px] uppercase tracking-[0.2em]">Data & Wajah Terverifikasi</p>
                 </div>
-                <div className="bg-gray-50 rounded-[2.5rem] p-10 mb-10 border border-gray-100 space-y-6 text-black">
-                    <div className="border-b border-gray-200 pb-4">
-                        <p className="text-[12px] font-black text-[#52426b] uppercase tracking-widest">Nama Lengkap</p>
-                        <p className="font-black text-lg uppercase">{form.nama}</p>
+                
+                <div className="bg-[#F8F4FF] rounded-3xl p-6 sm:p-8 mb-6 border border-purple-100/20 space-y-5 text-[#3a2e4b]">
+                    <div className="border-b border-purple-100 pb-3">
+                        <p className="text-[10px] font-black text-[#52426b] uppercase tracking-widest">Nama Lengkap</p>
+                        <p className="font-black text-base uppercase leading-snug">{form.nama}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div><p className="text-[12px] font-black text-[#52426b] uppercase tracking-widest">NPM</p><p className="font-bold text-sm">{form.npm}</p></div>
-                      <div><p className="text-[12px] font-black text-[#52426b] uppercase tracking-widest">Kelas</p><p className="font-bold text-sm">{form.kelas}</p></div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-purple-100 pb-3">
+                      <div>
+                        <p className="text-[10px] font-black text-[#52426b] uppercase tracking-widest">NPM</p>
+                        <p className="font-bold text-sm">{form.npm}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-[#52426b] uppercase tracking-widest">Kelas</p>
+                        <p className="font-bold text-sm">{form.kelas}</p>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <p className="text-[12px] font-black text-[#52426b] uppercase tracking-widest">Fakultas</p>
-                      <p className="font-bold text-sm uppercase">{form.fakultas}</p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] font-black text-[#52426b] uppercase tracking-widest">Fakultas</p>
+                        <p className="font-bold text-xs uppercase leading-tight">{form.fakultas}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-[#52426b] uppercase tracking-widest">Jurusan / Program Studi</p>
+                        <p className="font-bold text-xs uppercase leading-tight">{form.jurusan}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[12px] font-black text-[#52426b] uppercase tracking-widest">Jurusan / Program Studi</p>
-                      <p className="font-bold text-sm uppercase">{form.jurusan}</p>
-                    </div>
-                  </div>
-              </div>
-                <div className="flex gap-4">
-                  <button onClick={() => { setStep(1); setErrorMessage(""); }} className="flex-1 bg-red-500 text-black font-black py-5 rounded-3xl flex items-center justify-center gap-2 hover:bg-red-700 hover:text-black uppercase text-[12px] tracking-widest transition-all"><RefreshCw size={16} /> Scan Ulang</button>
-                  <button onClick={handleFinalRegister} disabled={loading} className="flex-[2] bg-[#e4d6f7] text-[#52426b] font-black py-5 rounded-3xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[12px] tracking-widest transition-all">{loading ? <Loader2 className="animate-spin" /> : <>Daftar Sekarang <CheckCircle2 size={18} /></>}</button>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button 
+                    onClick={() => { setStep(1); setErrorMessage(""); }} 
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 uppercase text-[11px] tracking-widest transition-all active:scale-95 shadow-sm"
+                  >
+                    <RefreshCw size={15} /> Scan Ulang
+                  </button>
+                  
+                  <button 
+                    onClick={handleFinalRegister} 
+                    disabled={loading} 
+                    className="flex-[2] bg-[#e4d6f7] hover:bg-[#d8c5ef] text-[#52426b] font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg uppercase text-[11px] tracking-widest transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={15} /> : <>Daftar Sekarang <CheckCircle2 size={15} /></>}
+                  </button>
                 </div>
               </div>
             )}

@@ -15,8 +15,8 @@ faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const FACE_MATCH_THRESHOLD = 0.55; 
-const FACE_DUPLICATION_THRESHOLD = 0.55; 
+const FACE_MATCH_THRESHOLD = 0.45; 
+const FACE_DUPLICATION_THRESHOLD = 0.45; 
 
 async function loadFaceApiModels() {
     const MODEL_PATH = './public/models';
