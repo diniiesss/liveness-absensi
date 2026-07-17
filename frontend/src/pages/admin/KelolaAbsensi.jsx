@@ -27,6 +27,36 @@ const KelolaAbsensi = () => {
   const matkulRef = useRef(null);
   const mapRef = useRef(null);
 
+  // --- REVERSE GEOCODING (DETAIL ALAMAT KAMPUS) ---
+  const [address, setAddress] = useState("");
+  const [loadingAddress, setLoadingAddress] = useState(false);
+
+  const fetchAddress = async (lat, lng) => {
+    if (!lat || !lng) return;
+    setLoadingAddress(true);
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+        headers: { 'Accept-Language': 'id' }
+      });
+      if (response.data && response.data.display_name) {
+        setAddress(response.data.display_name);
+      } else {
+        setAddress("Alamat tidak ditemukan");
+      }
+    } catch (error) {
+      console.error("Gagal mendapatkan alamat:", error);
+      setAddress("Gagal memuat detail alamat");
+    } finally {
+      setLoadingAddress(false);
+    }
+  };
+
+  useEffect(() => {
+    if (form.lokasi && form.lokasi.lat && form.lokasi.lng) {
+      fetchAddress(form.lokasi.lat, form.lokasi.lng);
+    }
+  }, [form.lokasi?.lat, form.lokasi?.lng]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (matkulRef.current && !matkulRef.current.contains(event.target)) {
@@ -374,6 +404,18 @@ const KelolaAbsensi = () => {
               <Navigation size={14} className="group-hover:rotate-12 transition-transform" />
               <span>Ambil Lokasi GPS Saat Ini</span>
             </button>
+
+            {/* DETAIL ALAMAT HASIL REVERSE GEOCODING */}
+            <div className="bg-[#F8F4FF] border border-purple-100/30 p-4 rounded-2xl space-y-1 text-[#3a2e4b]">
+              <p className="text-[11px] font-black uppercase text-[#52426b] tracking-wider">Detail Alamat Lokasi</p>
+              {loadingAddress ? (
+                <p className="text-xs font-bold text-purple-400 animate-pulse italic">Mencari nama jalan...</p>
+              ) : (
+                <p className="text-xs font-bold text-slate-600 leading-relaxed">
+                  {address || "Klik peta atau ambil GPS untuk melihat alamat."}
+                </p>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
