@@ -51,11 +51,6 @@ const KelolaAbsensi = () => {
     }
   };
 
-  useEffect(() => {
-    if (form.lokasi && form.lokasi.lat && form.lokasi.lng) {
-      fetchAddress(form.lokasi.lat, form.lokasi.lng);
-    }
-  }, [form.lokasi?.lat, form.lokasi?.lng]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -105,6 +100,13 @@ const KelolaAbsensi = () => {
     lokasi: { lat: -6.3686, lng: 106.8331 },
     radius: 50 
   });
+
+  // --- TRIGGER REVERSE GEOCODING KETIKA LOKASI BERUBAH ---
+  useEffect(() => {
+    if (form.lokasi && form.lokasi.lat && form.lokasi.lng) {
+      fetchAddress(form.lokasi.lat, form.lokasi.lng);
+    }
+  }, [form.lokasi?.lat, form.lokasi?.lng]);
 
   useEffect(() => {
     fetchSettings();
