@@ -13,6 +13,31 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor global penanganan token expired (401 / 403) -> Auto Logout & Redirect
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const url = error.config?.url || "";
+      const isAuthApi = url.includes('/login') || url.includes('/register') || url.includes('/check-npm') || url.includes('/check-face');
+      
+      if (!isAuthApi) {
+        // Hapus token dari localStorage
+        localStorage.removeItem('mahasiswa_token');
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('npm');
+        localStorage.removeItem('admin_email');
+        
+        // Redirect otomatis ke halaman login utama
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

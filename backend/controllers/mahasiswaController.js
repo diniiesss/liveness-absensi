@@ -96,7 +96,7 @@ const login = async (req, res) => {
         const mahasiswa = result.rows[0];
         const match = await bcrypt.compare(password, mahasiswa.password_hash);
         if (!match) return res.status(401).json({ success: false, message: 'Password salah.' });
-        const token = jwt.sign({ npm: mahasiswa.npm, role: 'mahasiswa' }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ npm: mahasiswa.npm, role: 'mahasiswa' }, process.env.JWT_SECRET, { expiresIn: '2h' });
         res.json({ success: true, token, mahasiswa });
     } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
 };
