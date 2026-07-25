@@ -83,6 +83,13 @@ const Profile = () => {
     }
   };
 
+  const validatePassword = (pwd) => {
+    if (!pwd || pwd.length < 6) return "Password minimal 6 karakter!";
+    if (!/[A-Z]/.test(pwd)) return "Password harus mengandung setidaknya 1 huruf besar (A-Z)!";
+    if (!/[_*#.]/.test(pwd)) return "Password harus mengandung setidaknya 1 simbol (_ * # .)!";
+    return null;
+  };
+
   const handlePasswordSubmit = async (e) => {
     e.preventDefault(); 
     const { newPassword, confirmPassword } = passwordForm;
@@ -92,6 +99,11 @@ const Profile = () => {
     }
     if (newPassword !== confirmPassword) {
       return toast.error("Verifikasi password tidak cocok!");
+    }
+
+    const pwdErr = validatePassword(newPassword);
+    if (pwdErr) {
+      return toast.error(pwdErr);
     }
 
     try {
@@ -247,7 +259,15 @@ const Profile = () => {
                 )}
               </div>
 
-              <div className="md:col-span-2 flex justify-end pt-4 mt-2">
+              {/* Syarat Password Banner */}
+              <div className="md:col-span-2 bg-white/10 border border-white/20 rounded-2xl p-4 text-[11px] text-[#f2e6ff] font-bold">
+                <p className="font-black uppercase tracking-wider text-[10px] text-amber-300 mb-1">Syarat Password Baru:</p>
+                <p className="text-[11px] font-bold opacity-90 leading-tight">
+                  Min. 6 karakter, wajib 1 huruf besar (A-Z) & 1 simbol (<code className="bg-white/20 px-1 rounded">_</code> <code className="bg-white/20 px-1 rounded">*</code> <code className="bg-white/20 px-1 rounded">#</code> <code className="bg-white/20 px-1 rounded">.</code>).
+                </p>
+              </div>
+
+              <div className="md:col-span-2 flex justify-end pt-2">
                 <button 
                   type="submit" 
                   className="bg-[#f2e6ff] text-[#52426b] px-12 py-5 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] hover:bg-gray-200 transition-all shadow-lg active:scale-95 disabled:opacity-50"

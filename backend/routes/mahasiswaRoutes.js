@@ -16,12 +16,17 @@ router.post('/register', mahasiswaController.registerMahasiswa);
 router.post('/check-npm', mahasiswaController.checkNPM);
 router.post('/check-face', mahasiswaController.checkFaceDuplicate);
 
-// --- Rute Reset Password (Biasanya digunakan oleh Admin) ---
+// --- Rute Reset Password ---
 router.post('/reset-password', async (req, res) => {
     const { npm, newPassword } = req.body;
     if (!npm || !newPassword) {
         return res.status(400).json({ success: false, message: "NPM dan password baru diperlukan." });
     }
+
+    if (newPassword.length < 6 || !/[A-Z]/.test(newPassword) || !/[_*#.]/.test(newPassword)) {
+        return res.status(400).json({ success: false, message: "Password minimal 6 karakter, wajib mengandung 1 huruf besar (A-Z) & 1 simbol (_ * # .)." });
+    }
+
     try {
         const mahasiswa = await mahasiswaModel.getMahasiswaByNPM(npm);
         if (!mahasiswa) {

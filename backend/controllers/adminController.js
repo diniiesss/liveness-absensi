@@ -102,12 +102,20 @@ exports.updateAdminPhoto = async (req, res) => {
   }
 };
 
+const validatePasswordPattern = (password) => {
+  if (!password || password.length < 6) return 'Password minimal 6 karakter.';
+  if (!/[A-Z]/.test(password)) return 'Password harus mengandung setidaknya satu huruf besar (A-Z).';
+  if (!/[_*#.]/.test(password)) return 'Password harus mengandung setidaknya satu simbol (_ * # .).';
+  return null;
+};
+
 exports.updateAdminPassword = async (req, res) => {
   const { newPassword } = req.body;
 
   try {
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ message: 'Password minimal 6 karakter' });
+    const pwdErr = validatePasswordPattern(newPassword);
+    if (pwdErr) {
+      return res.status(400).json({ message: pwdErr });
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
@@ -339,13 +347,18 @@ exports.getStats = async (req, res) => {
 exports.resetPasswordAdmin = async (req, res) => {
   const { email, newPassword } = req.body;
   try {
+    const pwdErr = validatePasswordPattern(newPassword);
+    if (pwdErr) {
+      return res.status(400).json({ success: false, message: pwdErr });
+    }
+
     const hashed = await bcrypt.hash(newPassword, 10);
     const result = await pool.query('UPDATE admin SET password_hash = $1 WHERE email = $2', [hashed, email]);
-    if (result.rowCount === 0) return res.status(404).json({ message: 'Admin tidak ditemukan' });
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Admin tidak ditemukan' });
     return res.json({ success: true, message: 'Password berhasil direset' });
   } catch (err) {
     console.error('❌ Reset password error:', err);
-    return res.status(500).json({ message: 'Gagal reset password' });
+    return res.status(500).json({ success: false, message: 'Gagal reset password' });
   }
 };
 

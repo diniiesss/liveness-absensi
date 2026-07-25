@@ -9,9 +9,22 @@ const ForgotPasswordModal = ({ onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validatePassword = (pwd) => {
+    if (!pwd || pwd.length < 6) return "Password minimal 6 karakter!";
+    if (!/[A-Z]/.test(pwd)) return "Password harus mengandung setidaknya 1 huruf besar (A-Z)!";
+    if (!/[_*#.]/.test(pwd)) return "Password harus mengandung setidaknya 1 simbol (_ * # .)!";
+    return null;
+  };
+
   const handleForgotPassword = async () => {
     if (!resetIdentifier || !newPassword) {
       toast.error("NPM/Email dan Password Baru tidak boleh kosong.");
+      return;
+    }
+
+    const pwdError = validatePassword(newPassword);
+    if (pwdError) {
+      toast.error(pwdError);
       return;
     }
 
@@ -108,6 +121,14 @@ const ForgotPasswordModal = ({ onClose }) => {
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
+            </div>
+
+            {/* Banner Syarat Password */}
+            <div className="bg-[#f2e6ff] border border-purple-100 rounded-2xl p-3 text-[11px] text-[#52426b] font-bold">
+              <p className="font-black uppercase tracking-wider text-[10px] text-[#52426b] mb-1">Syarat Password Baru:</p>
+              <p className="text-[10.5px] font-bold text-slate-600 leading-tight">
+                Min. 6 karakter, wajib 1 huruf besar (A-Z) & 1 simbol (<code className="bg-purple-200/60 px-1 rounded text-[#52426b]">_</code> <code className="bg-purple-200/60 px-1 rounded text-[#52426b]">*</code> <code className="bg-purple-200/60 px-1 rounded text-[#52426b]">#</code> <code className="bg-purple-200/60 px-1 rounded text-[#52426b]">.</code>).
+              </p>
             </div>
 
           </div>

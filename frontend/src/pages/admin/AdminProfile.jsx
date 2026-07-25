@@ -104,11 +104,23 @@ const AdminProfile = () => {
     setIsDeleteModalOpen(false);
   };
 
+  const validatePassword = (pwd) => {
+    if (!pwd || pwd.length < 6) return "Password minimal 6 karakter!";
+    if (!/[A-Z]/.test(pwd)) return "Password harus mengandung setidaknya 1 huruf besar (A-Z)!";
+    if (!/[_*#.]/.test(pwd)) return "Password harus mengandung setidaknya 1 simbol (_ * # .)!";
+    return null;
+  };
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (!passwordForm.newPassword) return toast.error("Password tidak boleh kosong!");
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       return toast.error("Konfirmasi password tidak cocok!");
+    }
+
+    const pwdErr = validatePassword(passwordForm.newPassword);
+    if (pwdErr) {
+      return toast.error(pwdErr);
     }
     
     const loadToast = toast.loading("Updating security...");
@@ -123,7 +135,7 @@ const AdminProfile = () => {
       toast.success("Kredensial diperbarui!", { id: loadToast });
       setPasswordForm({ newPassword: "", confirmPassword: "" });
     } catch (err) {
-      toast.error("Gagal ganti password", { id: loadToast });
+      toast.error(err.response?.data?.message || "Gagal ganti password", { id: loadToast });
     } finally {
       setLoading(false);
     }
@@ -254,6 +266,15 @@ const AdminProfile = () => {
                     )}
                 </div>
               </div>
+
+              {/* Banner Syarat Password */}
+              <div className="bg-[#f2e6ff] border border-purple-100 rounded-2xl p-4 text-[11px] text-[#52426b] font-bold">
+                <p className="font-black uppercase tracking-wider text-[10px] text-[#52426b] mb-1">Syarat Password Baru:</p>
+                <p className="text-[11px] font-bold text-slate-600 leading-tight">
+                  Min. 6 karakter, wajib 1 huruf besar (A-Z) & 1 simbol (<code className="bg-purple-200/60 px-1 rounded text-[#52426b]">_</code> <code className="bg-purple-200/60 px-1 rounded text-[#52426b]">*</code> <code className="bg-purple-200/60 px-1 rounded text-[#52426b]">#</code> <code className="bg-purple-200/60 px-1 rounded text-[#52426b]">.</code>).
+                </p>
+              </div>
+
               <div className="flex justify-end pt-2">
                 <button type="submit" disabled={loading || (passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword)} className="w-full md:w-auto bg-[#3a2e4b] text-white px-10 py-4 rounded-xl text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#52426b] transition-all active:scale-95 shadow-md disabled:opacity-50">
                   {loading ? <Loader2 className="animate-spin" size={18} /> : <><RotateCcw size={18} /> Perbarui Password</>}
