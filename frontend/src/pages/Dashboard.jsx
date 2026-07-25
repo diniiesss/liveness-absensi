@@ -189,6 +189,7 @@ const Dashboard = () => {
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success(res.data.message, { id: loadingToast });
       setStatus("✅ Berhasil");
+      setWarningNotice("");
       setIsAlreadyAttended(true);
       setTimeout(() => stopCamera(), 3000);
     } catch (err) {
@@ -197,6 +198,11 @@ const Dashboard = () => {
       setScanFailed(true);
       setIsScanning(false);
       setStatus(`❌ ${msg}`);
+      if (msg.includes("Wajah tidak cocok")) {
+        setWarningNotice("❌ Wajah tidak cocok dengan data biometrik pemilik akun ini! Mohon gunakan akun Anda sendiri.");
+      } else {
+        setWarningNotice(`❌ ${msg}`);
+      }
       if (detectionIntervalId.current) clearInterval(detectionIntervalId.current);
     }
   };
