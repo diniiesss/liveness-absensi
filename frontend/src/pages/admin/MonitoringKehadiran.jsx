@@ -201,43 +201,43 @@ const MonitoringKehadiran = () => {
       </div>
 
       {/* --- BOX CONTAINER UTAMA (SEARCH, FILTER & TABEL) --- */}
-      <div className="bg-white rounded-2xl md:rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden mx-2 relative flex flex-col min-h-[60vh]">
+      <div className="bg-white rounded-3xl md:rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden mx-4 sm:mx-6 relative flex flex-col min-h-[60vh] min-w-0 max-w-full">
         
         {/* --- FILTER & SEARCH BAR --- */}
-        <div className="p-4 md:p-8 border-b border-slate-100 bg-slate-50/10 flex flex-col md:flex-row gap-4">
+        <div className="p-4 md:p-8 border-b border-slate-100 bg-slate-50/10 flex flex-col md:flex-row gap-3 md:gap-4 min-w-0 max-w-full">
           {/* Search Nama/NPM */}
-          <div className="relative flex-[2] group">
+          <div className="relative flex-[2] group min-w-0 max-w-full overflow-hidden rounded-2xl bg-slate-50 border border-slate-200 focus-within:border-[#52426b] focus-within:ring-4 focus-within:ring-[#f2e6ff] transition-all">
             <input 
               type="text" 
               placeholder="Cari Nama atau NPM..." 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-[12px] font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] transition-all" 
+              className="w-full max-w-full min-w-0 box-border bg-transparent py-4 pl-12 pr-4 text-[12px] font-bold text-slate-700 placeholder:text-slate-400 outline-none border-none" 
             />
             <Search className="absolute left-4 top-4 text-slate-400 group-focus-within:text-[#52426b] transition-colors" size={18} />
           </div>
 
           {/* Input Kelas Manual */}
-          <div className="relative flex-1 group">
+          <div className="relative flex-1 group min-w-0 max-w-full overflow-hidden rounded-2xl bg-slate-50 border border-slate-200 focus-within:border-[#52426b] focus-within:ring-4 focus-within:ring-[#f2e6ff] transition-all">
             <input 
               type="text"
               placeholder="Cari Kelas (Contoh: 4IA01)..."
               value={filterKelas}
               onChange={(e) => setFilterKelas(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-[12px] font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] transition-all"
+              className="w-full max-w-full min-w-0 box-border bg-transparent py-4 pl-12 pr-4 text-[12px] font-bold text-slate-700 placeholder:text-slate-400 outline-none border-none"
             />
             <Hash className="absolute left-4 top-4 text-slate-400 group-focus-within:text-[#52426b] transition-colors" size={18} />
           </div>
 
           {/* Filter Mata Kuliah */}
-          <div className="relative flex-1" ref={matkulRef}>
+          <div className="relative flex-1 min-w-0 max-w-full" ref={matkulRef}>
             <button 
               type="button"
               onClick={() => setIsMatkulOpen(!isMatkulOpen)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 text-[12px] font-bold text-slate-700 flex justify-between items-center transition-all focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] text-left"
+              className="w-full max-w-full min-w-0 box-border bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 text-[12px] font-bold text-slate-700 flex justify-between items-center transition-all focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] text-left"
             >
-              <span className="truncate max-w-[150px]">{filterMatkul || "Semua Mata Kuliah"}</span>
-              <ChevronDown size={16} className={`text-slate-400 transition-transform duration-300 ${isMatkulOpen ? 'rotate-180' : ''}`} />
+              <span className="truncate flex-1 min-w-0 pr-2">{filterMatkul || "Semua Mata Kuliah"}</span>
+              <ChevronDown size={16} className={`text-slate-400 shrink-0 transition-transform duration-300 ${isMatkulOpen ? 'rotate-180' : ''}`} />
             </button>
             
             {isMatkulOpen && (
@@ -264,12 +264,12 @@ const MonitoringKehadiran = () => {
           </div>
 
           {/* Filter Tanggal */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0 max-w-full overflow-hidden rounded-2xl bg-slate-50 border border-slate-200 focus-within:border-[#52426b] focus-within:ring-4 focus-within:ring-[#f2e6ff] transition-all">
             <input 
               type="date" 
               value={filterTanggal} 
               onChange={(e) => setFilterTanggal(e.target.value)} 
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] cursor-pointer transition-all" 
+              className="w-full max-w-full min-w-0 box-border bg-transparent p-4 text-xs font-bold text-slate-700 outline-none border-none cursor-pointer" 
             />
           </div>
         </div>

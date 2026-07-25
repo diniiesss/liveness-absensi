@@ -15,14 +15,30 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const MapController = ({ center }) => {
+const MapController = ({ userPos, campusConfig }) => {
   const map = useMap();
   useEffect(() => { 
-    if (center && !isNaN(center.lat) && !isNaN(center.lng)) {
+    const timer = setTimeout(() => {
       map.invalidateSize();
-      map.setView([center.lat, center.lng], map.getZoom(), { animate: false });
+    }, 200);
+
+    if (userPos && campusConfig && campusConfig.latitude !== 0 && campusConfig.longitude !== 0) {
+      try {
+        const bounds = L.latLngBounds([
+          [userPos.lat, userPos.lng],
+          [campusConfig.latitude, campusConfig.longitude]
+        ]);
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 17, animate: true });
+      } catch (e) {}
+    } else if (userPos && !isNaN(userPos.lat) && !isNaN(userPos.lng)) {
+      map.setView([userPos.lat, userPos.lng], 16);
+    } else if (campusConfig && campusConfig.latitude !== 0 && campusConfig.longitude !== 0) {
+      map.setView([campusConfig.latitude, campusConfig.longitude], 16);
     }
-  }, [center, map]);
+
+    return () => clearTimeout(timer);
+  }, [userPos?.lat, userPos?.lng, campusConfig?.latitude, campusConfig?.longitude, map]);
+
   return null;
 };
 
@@ -162,7 +178,8 @@ const Dashboard = () => {
   }, [npm, token]);
 
   useEffect(() => {
-    const watchId = navigator.geolocation.watchPosition((pos) => {
+    let watchId;
+    const handleSuccess = (pos) => {
       const uLat = pos.coords.latitude;
       const uLng = pos.coords.longitude;
       setUserPos({ lat: uLat, lng: uLng });
@@ -177,10 +194,20 @@ const Dashboard = () => {
       } else {
         setLocationAllowed(false);
       }
-    }, (err) => {
-      console.error("Gagal mendeteksi GPS:", err);
-    }, { enableHighAccuracy: true });
-    return () => navigator.geolocation.clearWatch(watchId);
+    };
+
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(handleSuccess, (err) => {
+        console.error("HighAccuracy GPS error, trying fallback:", err);
+        navigator.geolocation.getCurrentPosition(handleSuccess, (err2) => {
+          console.error("Gagal fallback GPS:", err2);
+        }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 });
+      }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+    }
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
   }, [campusConfig]);
 
   useEffect(() => {
@@ -473,18 +500,22 @@ const Dashboard = () => {
             </div>
 
             {/* PETA */}
-            <div className="flex-1 bg-white/5 rounded-[2.5rem] border border-white/10 overflow-hidden relative min-h-[200px] flex items-center justify-center">
-              {userPos ? (
+            <div className="flex-1 bg-white/5 rounded-[2.5rem] border border-white/10 overflow-hidden relative min-h-[220px] flex items-center justify-center">
+              {campusConfig.isLoaded ? (
                 <MapContainer 
-                  center={[userPos.lat, userPos.lng]} zoom={17} style={{ height: '100%', width: '100%' }}
+                  center={userPos ? [userPos.lat, userPos.lng] : [campusConfig.latitude || -6.3686, campusConfig.longitude || 106.8331]} 
+                  zoom={16} 
+                  style={{ height: '100%', width: '100%' }}
                   dragging={true} scrollWheelZoom={true} zoomControl={true}
                 >
                   <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                  
+                  {/* LOKASI PRESENSI KAMPUS DARI ADMIN */}
                   {campusConfig.latitude !== 0 && campusConfig.longitude !== 0 && (
                     <>
                       <Circle 
                         center={[campusConfig.latitude, campusConfig.longitude]} 
-                        radius={campusConfig.radius} 
+                        radius={campusConfig.radius || 50} 
                         pathOptions={{ color: '#A855F7', fillColor: '#A855F7', fillOpacity: 0.2, weight: 2 }} 
                       />
                       <Marker position={[campusConfig.latitude, campusConfig.longitude]}>
@@ -492,16 +523,19 @@ const Dashboard = () => {
                       </Marker>
                     </>
                   )}
-                  <Marker position={[userPos.lat, userPos.lng]} />
-                  <MapController center={userPos} />
+
+                  {/* POSISI MAHASISWA */}
+                  {userPos && (
+                    <Marker position={[userPos.lat, userPos.lng]}>
+                      <Popup>Posisi Perangkat Anda</Popup>
+                    </Marker>
+                  )}
+
+                  <MapController userPos={userPos} campusConfig={campusConfig} />
                 </MapContainer>
-              ) : !campusConfig.isLoaded ? (
-                <div className="h-full flex items-center justify-center text-[#e4d6f3] font-black tracking-widest text-[10px] uppercase animate-pulse italic text-center p-4">
-                  Sinkronisasi Sistem Absensi...
-                </div>
               ) : (
                 <div className="h-full flex items-center justify-center text-[#e4d6f3] font-black tracking-widest text-[10px] uppercase animate-pulse italic text-center p-4">
-                  Mencari Koordinat GPS...
+                  Sinkronisasi Peta & Sesi Presensi Kampus...
                 </div>
               )}
             </div>
