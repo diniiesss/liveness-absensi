@@ -112,7 +112,20 @@ const absen = async (req, res) => {
 
         // FIXED MULTI-ADMIN: Menarik sesi presensi dosen yang memang membuka akses untuk KELAS mahasiswa ini
         const adminRes = await pool.query(
-            'SELECT * FROM admin_settings WHERE EXISTS (SELECT 1 FROM unnest(allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1))) LIMIT 1', 
+            `SELECT s.* 
+             FROM admin_settings s
+             WHERE EXISTS (SELECT 1 FROM unnest(s.allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1)))
+             ORDER BY 
+               CASE 
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time BETWEEN s.jam_masuk::time AND s.jam_selesai::time THEN 1
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time <= s.jam_selesai::time THEN 2
+                 WHEN s.hari_aktif = CURRENT_DATE THEN 3
+                 ELSE 4 
+               END ASC,
+               s.jam_masuk DESC
+             LIMIT 1`, 
             [student.kelas]
         );
         if (adminRes.rows.length === 0) return res.status(404).json({ message: 'Sesi presensi untuk kelas anda belum dibuka.' });
@@ -271,7 +284,23 @@ const getStatusAbsensiHariIni = async (req, res) => {
         const studentKelas = studentRes.rows[0].kelas;
 
         // FIXED MULTI-ADMIN: Mencari kecocokan berdasarkan kelas mahasiswa induk
-        const adminRes = await pool.query('SELECT kode_matkul, hari_aktif FROM admin_settings WHERE EXISTS (SELECT 1 FROM unnest(allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1))) LIMIT 1', [studentKelas]);
+        const adminRes = await pool.query(
+            `SELECT s.kode_matkul, s.hari_aktif 
+             FROM admin_settings s
+             WHERE EXISTS (SELECT 1 FROM unnest(s.allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1)))
+             ORDER BY 
+               CASE 
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time BETWEEN s.jam_masuk::time AND s.jam_selesai::time THEN 1
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time <= s.jam_selesai::time THEN 2
+                 WHEN s.hari_aktif = CURRENT_DATE THEN 3
+                 ELSE 4 
+               END ASC,
+               s.jam_masuk DESC
+             LIMIT 1`, 
+            [studentKelas]
+        );
         if (adminRes.rows.length === 0) return res.json({ alreadyAttended: false });
         
         const settings = adminRes.rows[0];
@@ -373,7 +402,23 @@ const validasiWaktuAbsensi = async (req, res) => {
         const studentKelas = studentRes.rows[0].kelas;
 
         // FIXED MULTI-ADMIN: Cek validasi waktu khusus sesi kelas mahasiswa penembak token
-        const result = await pool.query('SELECT * FROM admin_settings WHERE EXISTS (SELECT 1 FROM unnest(allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1))) LIMIT 1', [studentKelas]);
+        const result = await pool.query(
+            `SELECT s.* 
+             FROM admin_settings s
+             WHERE EXISTS (SELECT 1 FROM unnest(s.allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1)))
+             ORDER BY 
+               CASE 
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time BETWEEN s.jam_masuk::time AND s.jam_selesai::time THEN 1
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time <= s.jam_selesai::time THEN 2
+                 WHEN s.hari_aktif = CURRENT_DATE THEN 3
+                 ELSE 4 
+               END ASC,
+               s.jam_masuk DESC
+             LIMIT 1`, 
+            [studentKelas]
+        );
         if (result.rows.length === 0) return res.json({ valid: false });
         const settings = result.rows[0];
         
@@ -407,7 +452,18 @@ const getAdminCampusSettings = async (req, res) => {
             `SELECT s.*, mk.nama_matkul 
              FROM admin_settings s
              LEFT JOIN mata_kuliah mk ON s.kode_matkul = mk.kode_matkul
-             WHERE EXISTS (SELECT 1 FROM unnest(s.allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1))) LIMIT 1`, 
+             WHERE EXISTS (SELECT 1 FROM unnest(s.allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1)))
+             ORDER BY 
+               CASE 
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time BETWEEN s.jam_masuk::time AND s.jam_selesai::time THEN 1
+                 WHEN s.hari_aktif = CURRENT_DATE 
+                      AND (CURRENT_TIME AT TIME ZONE 'Asia/Jakarta')::time <= s.jam_selesai::time THEN 2
+                 WHEN s.hari_aktif = CURRENT_DATE THEN 3
+                 ELSE 4 
+               END ASC,
+               s.jam_masuk DESC
+             LIMIT 1`, 
             [studentKelas]
         );
         
