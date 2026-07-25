@@ -144,7 +144,7 @@ const DashboardHome = () => {
                     <tr key={idx} className="border-b border-slate-100 last:border-b-0 hover:bg-[#F8F4FF]/20 transition-colors">
                       <td className="py-6 px-10">
                         <p className="font-bold text-slate-800 text-[13px] uppercase">{item.nama}</p>
-                        <p className="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5">{item.npm} • {item.kelas}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{item.npm} • {item.kelas}</p>
                       </td>
                       <td className="py-6 px-6 font-bold text-slate-600 text-xs">{item.tanggal} ({item.jam})</td>
                       <td className="py-6 px-10 text-right">

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { User, Lock, KeyRound, X, Loader2 } from "lucide-react";
+import { User, Lock, KeyRound, X, Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ForgotPasswordModal = ({ onClose }) => {
   const [resetIdentifier, setResetIdentifier] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleForgotPassword = async () => {
@@ -80,10 +81,10 @@ const ForgotPasswordModal = ({ onClose }) => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="NPM ATAU EMAIL"
+                placeholder="NPM atau Email"
                 value={resetIdentifier}
                 onChange={(e) => setResetIdentifier(e.target.value)}
-                className="w-full bg-[#F8F4FF] border-2 border-transparent focus:border-[#52426b] pl-12 pr-6 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest text-[#3a2e4b] placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full bg-[#F8F4FF] border-2 border-transparent focus:border-[#52426b] pl-12 pr-6 py-4 rounded-2xl font-bold text-xs tracking-widest text-[#3a2e4b] placeholder-slate-400 focus:outline-none transition-all"
                 disabled={loading}
               />
               <User className="absolute left-4 top-4 text-slate-400" size={18} />
@@ -92,14 +93,21 @@ const ForgotPasswordModal = ({ onClose }) => {
             {/* Input Password Baru */}
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="PASSWORD BARU"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-[#F8F4FF] border-2 border-transparent focus:border-[#52426b] pl-12 pr-6 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest text-[#3a2e4b] placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full bg-[#F8F4FF] border-2 border-transparent focus:border-[#52426b] pl-12 pr-12 py-4 rounded-2xl font-bold text-xs tracking-widest text-[#3a2e4b] placeholder-slate-400 focus:outline-none transition-all"
                 disabled={loading}
               />
               <Lock className="absolute left-4 top-4 text-slate-400" size={18} />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-4 text-slate-400 hover:text-[#52426b] transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
 
           </div>
