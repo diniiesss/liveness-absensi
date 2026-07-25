@@ -217,13 +217,15 @@ const Dashboard = () => {
     } catch (e) { return 100; }
   };
 
-  const runLivenessLoop = (challenges, descriptorReference) => {
+  const runLivenessLoop = (challenges, initialDescriptor) => {
     let currentStep = 0;
     let loopCount = 0;
     let landmarkHistory = [];
-    const maxDurationLoops = 48; // Max 12 detik batas percobaan liveness
+    let descriptorRef = initialDescriptor;
+    const maxDurationLoops = 60; // Max 15 detik batas percobaan liveness
 
     setStatus(challenges[currentStep].label);
+    
     detectionIntervalId.current = setInterval(async () => {
       if (!videoRef.current) return;
       loopCount++;
@@ -238,50 +240,56 @@ const Dashboard = () => {
       const det = await faceapi.detectSingleFace(
         videoRef.current, 
         new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })
-      ).withFaceLandmarks().withFaceExpressions();
+      ).withFaceLandmarks().withFaceExpressions().withFaceDescriptor();
 
       if (!det) {
-        setWarningNotice("⚠️ Wajah tidak jelas/tertutup! Mohon lepas masker, kacamata hitam, atau penutup wajah.");
-      } else {
-        // Cek variansi gerakan untuk mendeteksi foto statis / gambar layar HP
-        const jaw = det.landmarks.getJawOutline();
-        const nose = det.landmarks.getNose()[0];
-        const faceW = jaw[16].x - jaw[0].x;
-        const normNoseX = (nose.x - jaw[0].x) / (faceW || 1);
-        const normNoseY = (nose.y - jaw[0].y) / (faceW || 1);
+        // PERINGATAN HANYA DI KOTAK BAWAH FRAME (KAMERA TETAP BUKA, TANPA TOAST POPUP)
+        setWarningNotice("⚠️ Wajah tidak terdeteksi jelas! Posisikan wajah di depan kamera & lepas masker/kacamata hitam.");
+        return;
+      }
 
-        landmarkHistory.push({ x: normNoseX, y: normNoseY });
-        if (landmarkHistory.length > 15) landmarkHistory.shift();
+      if (!descriptorRef && det.descriptor) {
+        descriptorRef = det.descriptor;
+      }
 
-        if (landmarkHistory.length >= 12 && loopCount > 15) {
-          const rangeX = Math.max(...landmarkHistory.map(p => p.x)) - Math.min(...landmarkHistory.map(p => p.x));
-          const rangeY = Math.max(...landmarkHistory.map(p => p.y)) - Math.min(...landmarkHistory.map(p => p.y));
-          if (rangeX < 0.001 && rangeY < 0.001) {
-            setWarningNotice("🚫 Terdeteksi Foto Statis / Gambar HP! Mohon gunakan wajah asli Anda secara langsung.");
-          }
+      // Cek variansi gerakan untuk mendeteksi foto statis / gambar layar HP
+      const jaw = det.landmarks.getJawOutline();
+      const nose = det.landmarks.getNose()[0];
+      const faceW = jaw[16].x - jaw[0].x;
+      const normNoseX = (nose.x - jaw[0].x) / (faceW || 1);
+      const normNoseY = (nose.y - jaw[0].y) / (faceW || 1);
+
+      landmarkHistory.push({ x: normNoseX, y: normNoseY });
+      if (landmarkHistory.length > 15) landmarkHistory.shift();
+
+      if (landmarkHistory.length >= 12 && loopCount > 15) {
+        const rangeX = Math.max(...landmarkHistory.map(p => p.x)) - Math.min(...landmarkHistory.map(p => p.x));
+        const rangeY = Math.max(...landmarkHistory.map(p => p.y)) - Math.min(...landmarkHistory.map(p => p.y));
+        if (rangeX < 0.001 && rangeY < 0.001) {
+          setStatus("🚫 TERDETEKSI FOTO STATIS / MEDIA!");
+          setWarningNotice("🚫 Terdeteksi Foto Statis / Gambar HP! Mohon gunakan wajah asli Anda secara langsung.");
         }
+      }
 
-        // Timeout jika menggunakan foto statis tanpa gerakan asli
-        if (loopCount > maxDurationLoops) {
+      // Timeout jika menggunakan foto statis tanpa gerakan asli
+      if (loopCount > maxDurationLoops) {
+        clearInterval(detectionIntervalId.current);
+        setStatus("🚫 TERDETEKSI FOTO STATIS / MEDIA!");
+        setWarningNotice("🚫 Terdeteksi Foto Statis / Media Non-Wajah Asli! Liveness gagal.");
+        setScanFailed(true);
+        setIsScanning(false);
+        return;
+      }
+
+      if (challenges[currentStep].check(det)) {
+        setWarningNotice("");
+        if (currentStep < challenges.length - 1) {
+          currentStep++;
+          setStatus("Bagus! " + challenges[currentStep].label);
+        } else {
           clearInterval(detectionIntervalId.current);
-          setWarningNotice("🚫 Terdeteksi Foto Statis / Media Non-Wajah Asli! Liveness gagal.");
-          toast.error("Terdeteksi foto statis / media non-wajah asli!");
-          setScanFailed(true);
-          setIsScanning(false);
-          setStatus("❌ Terdeteksi foto statis / media");
-          return;
-        }
-
-        if (challenges[currentStep].check(det)) {
-          setWarningNotice("");
-          if (currentStep < challenges.length - 1) {
-            currentStep++;
-            setStatus("Bagus! " + challenges[currentStep].label);
-          } else {
-            clearInterval(detectionIntervalId.current);
-            setStatus("Menyimpan...");
-            handleFinalSubmit(descriptorReference);
-          }
+          setStatus("Menyimpan...");
+          handleFinalSubmit(descriptorRef || det.descriptor);
         }
       }
     }, 250); 
@@ -300,30 +308,11 @@ const Dashboard = () => {
       streamRef.current = stream;
       setIsCameraOn(true);
       
-      // Deteksi wajah langsung setelah kamera siap (hanya delay 400ms)
-      setTimeout(async () => {
+      // Kamera TETAP BUKA terus tanpa menutup atau mengeluarkan toast error popup!
+      setTimeout(() => {
         if (!videoRef.current) return;
-        setStatus("Deteksi Wajah...");
-
-        const brightness = checkBrightness(videoRef.current);
-        if (brightness < 55) {
-          setWarningNotice("💡 Pencahayaan kurang terang! Mohon cari tempat yang lebih terang.");
-        }
-
-        const det = await faceapi.detectSingleFace(
-          videoRef.current, 
-          new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })
-        ).withFaceLandmarks().withFaceDescriptor();
-
-        if (det) {
-          setWarningNotice("");
-          const shuffled = [...challengeLibrary].sort(() => 0.5 - Math.random()).slice(0, 2);
-          runLivenessLoop(shuffled, det.descriptor);
-        } else {
-          setWarningNotice("⚠️ Wajah tidak terdeteksi! Lepas masker, kacamata hitam, atau penutup wajah.");
-          toast.error("Wajah tidak jelas. Pastikan lepas masker/kacamata hitam.");
-          stopCamera();
-        }
+        const shuffled = [...challengeLibrary].sort(() => 0.5 - Math.random()).slice(0, 2);
+        runLivenessLoop(shuffled, null);
       }, 400);
     } catch (e) { toast.error("Gagal membuka kamera."); setIsScanning(false); }
   };
