@@ -94,16 +94,19 @@ const Dashboard = () => {
   useEffect(() => {
     const syncSesiDanWaktu = async () => {
       try {
-        // Cek kalau token diblokir browser (Tracking Prevention)
         if (!token) throw new Error("Token tidak ditemukan. Cek pengaturan privasi browser.");
-
         const header = { headers: { Authorization: `Bearer ${token}` } };
         
-        // 1. Ambil data pengaturan kampus
-        const configRes = await axios.get('http://localhost:5000/api/mahasiswa/admin/pengaturan-kampus', header);
+        // 1. Eksekusi paralel 3 request sekaligus (3x lebih cepat!)
+        const [configRes, timeRes, statusRes] = await Promise.all([
+          axios.get('http://localhost:5000/api/mahasiswa/admin/pengaturan-kampus', header),
+          axios.get('http://localhost:5000/api/mahasiswa/absensi/validasi-waktu', header),
+          axios.get(`http://localhost:5000/api/mahasiswa/absensi/status-hari-ini/${npm}`, header)
+        ]);
+
         const settings = configRes.data;
 
-        // 2. 🛡️ SAFETY CHECK: Jika Admin belum buka sesi, berhenti di sini (Jangan paksa baca koordinat)
+        // 2. SAFETY CHECK: Jika Admin belum buka sesi
         if (!settings || Object.keys(settings).length === 0 || !settings.lokasi) {
           setCampusConfig(prev => ({ 
             ...prev, 
@@ -112,10 +115,9 @@ const Dashboard = () => {
           }));
           setStatus("❌ Belum ada sesi presensi dari Admin");
           setIsTimeValid(false);
-          return; // Menghentikan fungsi agar tidak crash di bawah
+          return;
         }
 
-        // 3. Jika sesi ADA, baru baca koordinat lokasi
         const loc = typeof settings.lokasi === 'string' ? JSON.parse(settings.lokasi) : settings.lokasi;
 
         setCampusConfig({ 
@@ -127,11 +129,7 @@ const Dashboard = () => {
           isLoaded: true 
         });
 
-        // 4. Validasi waktu dan status absen
-        const timeRes = await axios.get('http://localhost:5000/api/mahasiswa/absensi/validasi-waktu', header);
         setIsTimeValid(timeRes.data.valid);
-
-        const statusRes = await axios.get(`http://localhost:5000/api/mahasiswa/absensi/status-hari-ini/${npm}`, header);
         setIsAlreadyAttended(statusRes.data.alreadyAttended);
 
         if (statusRes.data.alreadyAttended) {
@@ -143,7 +141,6 @@ const Dashboard = () => {
         }
 
       } catch (err) { 
-        // Log ini akan menampilkan pesan aslinya kalau ada error lain!
         console.error("❌ Gagal sinkronisasi sesi. Detail:", err.response?.data || err.message); 
       }
     };
@@ -222,9 +219,14 @@ const Dashboard = () => {
 
   const runLivenessLoop = (challenges, descriptorReference) => {
     let currentStep = 0;
+    let loopCount = 0;
+    let landmarkHistory = [];
+    const maxDurationLoops = 48; // Max 12 detik batas percobaan liveness
+
     setStatus(challenges[currentStep].label);
     detectionIntervalId.current = setInterval(async () => {
       if (!videoRef.current) return;
+      loopCount++;
 
       const brightness = checkBrightness(videoRef.current);
       if (brightness < 55) {
@@ -240,15 +242,46 @@ const Dashboard = () => {
 
       if (!det) {
         setWarningNotice("⚠️ Wajah tidak jelas/tertutup! Mohon lepas masker, kacamata hitam, atau penutup wajah.");
-      } else if (det && challenges[currentStep].check(det)) {
-        setWarningNotice("");
-        if (currentStep < challenges.length - 1) {
-          currentStep++;
-          setStatus("Bagus! " + challenges[currentStep].label);
-        } else {
+      } else {
+        // Cek variansi gerakan untuk mendeteksi foto statis / gambar layar HP
+        const jaw = det.landmarks.getJawOutline();
+        const nose = det.landmarks.getNose()[0];
+        const faceW = jaw[16].x - jaw[0].x;
+        const normNoseX = (nose.x - jaw[0].x) / (faceW || 1);
+        const normNoseY = (nose.y - jaw[0].y) / (faceW || 1);
+
+        landmarkHistory.push({ x: normNoseX, y: normNoseY });
+        if (landmarkHistory.length > 15) landmarkHistory.shift();
+
+        if (landmarkHistory.length >= 12 && loopCount > 15) {
+          const rangeX = Math.max(...landmarkHistory.map(p => p.x)) - Math.min(...landmarkHistory.map(p => p.x));
+          const rangeY = Math.max(...landmarkHistory.map(p => p.y)) - Math.min(...landmarkHistory.map(p => p.y));
+          if (rangeX < 0.001 && rangeY < 0.001) {
+            setWarningNotice("🚫 Terdeteksi Foto Statis / Gambar HP! Mohon gunakan wajah asli Anda secara langsung.");
+          }
+        }
+
+        // Timeout jika menggunakan foto statis tanpa gerakan asli
+        if (loopCount > maxDurationLoops) {
           clearInterval(detectionIntervalId.current);
-          setStatus("Menyimpan...");
-          handleFinalSubmit(descriptorReference);
+          setWarningNotice("🚫 Terdeteksi Foto Statis / Media Non-Wajah Asli! Liveness gagal.");
+          toast.error("Terdeteksi foto statis / media non-wajah asli!");
+          setScanFailed(true);
+          setIsScanning(false);
+          setStatus("❌ Terdeteksi foto statis / media");
+          return;
+        }
+
+        if (challenges[currentStep].check(det)) {
+          setWarningNotice("");
+          if (currentStep < challenges.length - 1) {
+            currentStep++;
+            setStatus("Bagus! " + challenges[currentStep].label);
+          } else {
+            clearInterval(detectionIntervalId.current);
+            setStatus("Menyimpan...");
+            handleFinalSubmit(descriptorReference);
+          }
         }
       }
     }, 250); 
