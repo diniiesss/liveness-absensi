@@ -276,6 +276,8 @@ exports.getDaftarKehadiran = async (req, res) => {
         } catch (e) {}
       }
 
+      const d = dayjs(row.waktu_absen);
+
       return {
         nama: row.nama_lengkap || "Mahasiswa Tidak Terdaftar",
         npm: row.npm,
@@ -283,8 +285,8 @@ exports.getDaftarKehadiran = async (req, res) => {
         jurusan: row.jurusan || "-",
         mata_kuliah: row.nama_matkul,
         status: row.status,
-        tanggal: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('YYYY-MM-DD'),
-        jam: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('HH:mm:ss'),
+        tanggal: d.isValid() ? d.format('YYYY-MM-DD') : String(row.waktu_absen).substring(0, 10),
+        jam: d.isValid() ? d.format('HH:mm:ss') : String(row.waktu_absen).substring(11, 19),
         lokasi_lat: latFinal ? parseFloat(latFinal) : null,
         lokasi_lng: lngFinal ? parseFloat(lngFinal) : null,
         detail_alamat: alamatText

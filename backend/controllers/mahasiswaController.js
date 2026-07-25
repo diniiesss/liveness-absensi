@@ -519,9 +519,9 @@ const markAbsentStudentsDaily = async () => {
         try {
             await pool.query(
                 `UPDATE absensi 
-                 SET waktu_absen = '2026-07-25 20:01:00+07' 
+                 SET waktu_absen = '2026-07-25 20:01:00' 
                  WHERE status = 'Tidak Hadir' 
-                   AND (TO_CHAR(waktu_absen, 'YYYY-MM-DD') = '2026-07-26' OR TO_CHAR(waktu_absen, 'HH24:MI') = '03:00' OR TO_CHAR(waktu_absen, 'HH24:MI') = '20:00')`
+                   AND (TO_CHAR(waktu_absen, 'YYYY-MM-DD') = '2026-07-26' OR TO_CHAR(waktu_absen, 'HH24:MI') = '03:00' OR TO_CHAR(waktu_absen, 'HH24:MI') = '03:01' OR TO_CHAR(waktu_absen, 'HH24:MI') = '20:00')`
             );
         } catch(e) {}
 
@@ -582,7 +582,7 @@ const markAbsentStudentsDaily = async () => {
                 // 4. Jika terbukti bolos/tidak scan wajah sampai jam_selesai lewat, tandai 'Tidak Hadir' (Jam Selesai + 1 Menit)
                 if (checkAbsen.rows.length === 0) {
                     const jamSelesaiStr = jam_selesai ? String(jam_selesai).substring(0, 8) : "23:59:59";
-                    const waktuAbsenFinal = dayjs.tz(`${sessionDateStr} ${jamSelesaiStr}`, 'Asia/Jakarta').add(1, 'minute').format('YYYY-MM-DDTHH:mm:ss+07:00');
+                    const waktuAbsenFinal = dayjs.tz(`${sessionDateStr} ${jamSelesaiStr}`, 'Asia/Jakarta').add(1, 'minute').format('YYYY-MM-DD HH:mm:ss');
 
                     await mahasiswaModel.insertAbsensi({
                         npm: student.npm,
