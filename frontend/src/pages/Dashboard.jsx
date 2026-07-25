@@ -146,8 +146,19 @@ const Dashboard = () => {
     };
 
     syncSesiDanWaktu();
-    const interval = setInterval(syncSesiDanWaktu, 30000); 
-    return () => clearInterval(interval);
+    const interval = setInterval(syncSesiDanWaktu, 5000); 
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncSesiDanWaktu();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [npm, token]);
 
   useEffect(() => {
