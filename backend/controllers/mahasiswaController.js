@@ -331,6 +331,7 @@ const getRiwayatAbsensi = async (req, res) => {
     const { npm } = req.params;
     const { bulan, kode_matkul } = req.query;
     try {
+        try { await markAbsentStudentsDaily(); } catch (e) {}
         let query = `
             SELECT 
                 a.id, 
@@ -508,28 +509,28 @@ const updateProfilePhoto = async (req, res) => {
 const markAbsentStudentsDaily = async () => {
     try {
         const tglSekarang = dayjs().tz('Asia/Jakarta').format('YYYY-MM-DD');
-        const jamMenitSekarang = dayjs().tz('Asia/Jakarta').format('HH:mm'); // Contoh: "22:14"
+        const jamSekarang = dayjs().tz('Asia/Jakarta').format('HH:mm:ss');
         
-        // 1. Cari sesi milik admin SIAPA PUN yang hari aktifnya HARI INI dan JAM SELESAINYA PAS dengan menit sekarang
+        // 1. Cari seluruh sesi perkuliahan yang HARI AKTIF-nya sudah terjadi / hari ini dan JAM SELESAI-nya sudah lewat
         const activeSessions = await pool.query(
-            `SELECT s.kode_matkul, s.allowed_kelas, s.admin_id, mk.nama_matkul 
+            `SELECT s.kode_matkul, s.allowed_kelas, s.admin_id, s.hari_aktif, s.jam_selesai, mk.nama_matkul 
              FROM admin_settings s
              LEFT JOIN mata_kuliah mk ON s.kode_matkul = mk.kode_matkul
-             WHERE DATE(s.hari_aktif) = $1 AND TO_CHAR(s.jam_selesai, 'HH24:MI') = $2`,
-            [tglSekarang, jamMenitSekarang]
+             WHERE DATE(s.hari_aktif) <= $1 
+               AND (DATE(s.hari_aktif) < $1 OR (s.jam_selesai::time <= $2::time))`,
+            [tglSekarang, jamSekarang]
         );
 
-        // Jika di menit ini tidak ada kelas dosen mana pun yang selesai, langsung berhenti (hemat RAM server)
         if (activeSessions.rows.length === 0) {
             return; 
         }
 
-        console.log(`🔥 Ditemukan ${activeSessions.rows.length} sesi perkuliahan yang selesai pada menit ini (${jamMenitSekarang}). Memulai proses auto-alpa...`);
-
-        // Looping secara paralel untuk setiap sesi matkul dosen yang selesai di menit yang sama
+        // Looping untuk setiap sesi yang sudah berakhir
         for (const session of activeSessions.rows) {
-            const { kode_matkul, allowed_kelas, nama_matkul } = session;
+            const { kode_matkul, allowed_kelas, nama_matkul, hari_aktif, jam_selesai } = session;
             if (!allowed_kelas || allowed_kelas.length === 0) continue;
+
+            const sessionDateStr = dayjs(hari_aktif).format('YYYY-MM-DD');
 
             // 2. Ambil mahasiswa aktif yang masuk anggota kelas yang diizinkan dosen tersebut
             const studentRes = await pool.query(
@@ -538,30 +539,31 @@ const markAbsentStudentsDaily = async () => {
             );
 
             for (const student of studentRes.rows) {
-                // 3. Cek apakah mahasiswa ini sudah absen di matkul tersebut hari ini
+                // 3. Cek apakah mahasiswa ini sudah absen di matkul tersebut pada tanggal hari_aktif sesi ini
                 const checkAbsen = await pool.query(
                     'SELECT id FROM absensi WHERE npm = $1 AND kode_matkul = $2 AND DATE(waktu_absen) = $3',
-                    [student.npm, kode_matkul, tglSekarang]
+                    [student.npm, kode_matkul, sessionDateStr]
                 );
 
-                // 4. Jika terbukti bolos/tidak scan wajah sampai menit terakhir, tembak status 'Tidak Hadir'
+                // 4. Jika terbukti bolos/tidak scan wajah sampai jam_selesai lewat, tandai 'Tidak Hadir'
                 if (checkAbsen.rows.length === 0) {
+                    const jamSelesaiStr = jam_selesai ? String(jam_selesai).substring(0, 8) : "23:59:59";
+                    const waktuAbsenFinal = `${sessionDateStr} ${jamSelesaiStr}`;
+
                     await mahasiswaModel.insertAbsensi({
                         npm: student.npm,
                         status: 'Tidak Hadir',
                         lokasi_lat: null,
                         lokasi_lng: null,
-                        waktu: dayjs().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss'),
+                        waktu: waktuAbsenFinal,
                         kode_matkul: kode_matkul
                     });
-                    console.log(`📌 [AUTO-ALPA] NPM ${student.npm} ditandai Tidak Hadir pada matkul: ${nama_matkul}`);
+                    console.log(`📌 [AUTO-ALPA] NPM ${student.npm} ditandai Tidak Hadir pada matkul: ${nama_matkul} (${sessionDateStr})`);
                 }
             }
         }
-        console.log(`✅ Proses auto-alpa pada menit ${jamMenitSekarang} selesai.`);
     } catch (error) {
         console.error('❌ Terjadi kesalahan di dalam markAbsentStudentsDaily:', error);
-        throw error;
     }
 };
 

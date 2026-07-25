@@ -199,11 +199,15 @@ exports.updateMahasiswa = async (req, res) => {
   }
 };
 
+const mahasiswaController = require('./mahasiswaController');
+
 // =========================================================================
 // 📋 GET DAFTAR KEHADIRAN (MULTI-SESSION PER ADMIN)
 // =========================================================================
 exports.getDaftarKehadiran = async (req, res) => {
   try {
+    try { if (mahasiswaController.markAbsentStudentsDaily) await mahasiswaController.markAbsentStudentsDaily(); } catch (e) {}
+
     const { kelas, jurusan, tanggal, sessionOnly } = req.query;
 
     let query = `
