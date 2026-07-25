@@ -516,8 +516,8 @@ const markAbsentStudentsDaily = async () => {
             `SELECT s.kode_matkul, s.allowed_kelas, s.admin_id, s.hari_aktif, s.jam_selesai, mk.nama_matkul 
              FROM admin_settings s
              LEFT JOIN mata_kuliah mk ON s.kode_matkul = mk.kode_matkul
-             WHERE DATE(s.hari_aktif) <= $1 
-               AND (DATE(s.hari_aktif) < $1 OR (s.jam_selesai::time <= $2::time))`,
+             WHERE s.hari_aktif IS NOT NULL
+               AND (s.hari_aktif::date < $1::date OR (s.hari_aktif::date = $1::date AND s.jam_selesai::time <= $2::time))`,
             [tglSekarang, jamSekarang]
         );
 
@@ -528,14 +528,34 @@ const markAbsentStudentsDaily = async () => {
         // Looping untuk setiap sesi yang sudah berakhir
         for (const session of activeSessions.rows) {
             const { kode_matkul, allowed_kelas, nama_matkul, hari_aktif, jam_selesai } = session;
-            if (!allowed_kelas || allowed_kelas.length === 0) continue;
+            if (!allowed_kelas) continue;
+
+            let kelasArr = [];
+            if (Array.isArray(allowed_kelas)) {
+                kelasArr = allowed_kelas.map(k => String(k).trim()).filter(k => k !== "");
+            } else if (typeof allowed_kelas === 'string') {
+                try {
+                    const parsed = JSON.parse(allowed_kelas);
+                    if (Array.isArray(parsed)) kelasArr = parsed.map(k => String(k).trim()).filter(k => k !== "");
+                    else kelasArr = allowed_kelas.split(',').map(k => k.trim()).filter(k => k !== "");
+                } catch(e) {
+                    kelasArr = allowed_kelas.split(',').map(k => k.trim()).filter(k => k !== "");
+                }
+            }
+
+            if (kelasArr.length === 0) continue;
 
             const sessionDateStr = dayjs(hari_aktif).format('YYYY-MM-DD');
 
-            // 2. Ambil mahasiswa aktif yang masuk anggota kelas yang diizinkan dosen tersebut
+            // 2. Ambil seluruh mahasiswa aktif yang kelasnya cocok (case & whitespace insensitive)
             const studentRes = await pool.query(
-                'SELECT npm FROM mahasiswa WHERE kelas = ANY($1) AND is_active = true',
-                [allowed_kelas]
+                `SELECT npm, nama, kelas FROM mahasiswa 
+                 WHERE is_active = true 
+                   AND EXISTS (
+                     SELECT 1 FROM unnest($1::text[]) k 
+                     WHERE LOWER(TRIM(k)) = LOWER(TRIM(mahasiswa.kelas))
+                   )`,
+                [kelasArr]
             );
 
             for (const student of studentRes.rows) {
@@ -558,7 +578,7 @@ const markAbsentStudentsDaily = async () => {
                         waktu: waktuAbsenFinal,
                         kode_matkul: kode_matkul
                     });
-                    console.log(`📌 [AUTO-ALPA] NPM ${student.npm} ditandai Tidak Hadir pada matkul: ${nama_matkul} (${sessionDateStr})`);
+                    console.log(`📌 [AUTO-ALPA] NPM ${student.npm} (${student.kelas}) ditandai Tidak Hadir pada matkul: ${nama_matkul} (${sessionDateStr})`);
                 }
             }
         }
