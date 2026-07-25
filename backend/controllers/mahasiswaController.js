@@ -312,7 +312,7 @@ const getRiwayatAbsensi = async (req, res) => {
                 a.lokasi_lng, 
                 a.kode_matkul,
                 mk.nama_matkul,
-                COALESCE(s.lokasi, (SELECT lokasi FROM admin_settings ORDER BY id DESC LIMIT 1)) AS settings_lokasi
+                COALESCE(s.lokasi, (SELECT lokasi FROM admin_settings LIMIT 1)) AS settings_lokasi
             FROM absensi a
             LEFT JOIN mata_kuliah mk ON a.kode_matkul = mk.kode_matkul
             LEFT JOIN admin_settings s ON a.kode_matkul = s.kode_matkul

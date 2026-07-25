@@ -210,7 +210,7 @@ exports.getDaftarKehadiran = async (req, res) => {
       SELECT
         a.id, a.waktu_absen, a.lokasi_lat, a.lokasi_lng, a.status, mk.nama_matkul, a.kode_matkul,
         m.nama AS nama_lengkap, m.npm, m.kelas, m.jurusan,
-        COALESCE(s.lokasi, (SELECT lokasi FROM admin_settings ORDER BY id DESC LIMIT 1)) AS settings_lokasi
+        COALESCE(s.lokasi, (SELECT lokasi FROM admin_settings LIMIT 1)) AS settings_lokasi
       FROM absensi a
       LEFT JOIN mahasiswa m ON a.npm = m.npm
       LEFT JOIN mata_kuliah mk ON a.kode_matkul = mk.kode_matkul
