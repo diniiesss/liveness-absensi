@@ -282,7 +282,7 @@ const KelolaAbsensi = () => {
   );
 
   return (
-    <div className="space-y-8 pt-4 pb-36 md:pb-10 animate-in fade-in duration-500 min-w-0 overflow-x-hidden">
+    <div className="space-y-8 pt-10 sm:pt-4 pb-36 md:pb-10 animate-in fade-in duration-500 min-w-0 overflow-x-hidden">
       
       {/* HEADER PAGE */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 sm:px-6">
@@ -296,7 +296,7 @@ const KelolaAbsensi = () => {
       </div>
 
       {/* GRID CONTAINER UTAMA */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start px-3 sm:px-6 min-w-0 max-w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start px-4 sm:px-6 min-w-0 max-w-full">
         
         {/* CARD KIRI: SESI MATA KULIAH */}
         <div className="lg:col-span-6 bg-white rounded-3xl md:rounded-[3.5rem] shadow-sm p-5 sm:p-8 md:p-12 border border-slate-200 space-y-6 sm:space-y-8 min-w-0 max-w-full overflow-hidden">
@@ -357,15 +357,15 @@ const KelolaAbsensi = () => {
               <InputGroup label="Hari Aktif" type="date" value={form.hari_aktif} onChange={(v) => setForm({...form, hari_aktif: v})} />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-black text-[#52426b] uppercase tracking-widest ml-1">
+            <div className="flex flex-col gap-2 w-full min-w-0 max-w-full">
+              <label className="text-[13px] sm:text-[14px] font-black text-[#52426b] uppercase tracking-widest ml-1">
                 Akses Kelas (Pisahkan Koma)
               </label>
               <textarea 
                 value={form.allowed_kelas} 
                 onChange={(e) => setForm({...form, allowed_kelas: e.target.value})}
                 placeholder="Contoh: 4IA01, 4IA02, 4IA03"
-                className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-5 text-[13px] font-bold focus:bg-white focus:outline-none focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] min-h-[120px] resize-none transition-all placeholder:text-slate-300 ${
+                className={`w-full max-w-full min-w-0 box-border bg-slate-50 border border-slate-200 rounded-2xl p-4 text-[13px] font-bold focus:bg-white focus:outline-none focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] min-h-[100px] resize-none transition-all placeholder:text-slate-300 ${
                   form.allowed_kelas ? 'text-slate-800' : 'text-slate-400'
                 }`}
               />
@@ -517,19 +517,22 @@ const KelolaAbsensi = () => {
   );
 };
 
-const InputGroup = ({ label, value, onChange, ...props }) => (
+const InputGroup = ({ label, value, onChange, type, ...props }) => (
   <div className="flex flex-col gap-2 w-full min-w-0 max-w-full">
     <label className="text-[13px] sm:text-[14px] font-black text-[#52426b] uppercase tracking-widest ml-1">
       {label}
     </label>
-    <input 
-      {...props} 
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`w-full max-w-full min-w-0 box-border bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 text-[13px] font-bold focus:bg-white focus:outline-none focus:border-[#52426b] focus:ring-4 focus:ring-[#f2e6ff] transition-all duration-200 ${
-        value ? 'text-slate-800' : 'text-slate-400'
-      }`} 
-    />
+    <div className="relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-[#52426b] focus-within:ring-4 focus-within:ring-[#f2e6ff] transition-all">
+      <input 
+        {...props} 
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full max-w-full min-w-0 box-border bg-transparent p-3.5 sm:p-4 text-[13px] font-bold outline-none border-none ${
+          value ? 'text-slate-800' : 'text-slate-400'
+        }`} 
+      />
+    </div>
   </div>
 );
 
