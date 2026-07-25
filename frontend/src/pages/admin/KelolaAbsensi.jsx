@@ -165,6 +165,12 @@ const KelolaAbsensi = () => {
   };
 
   const handleUpdateLocation = () => {
+    if (devicePos && devicePos.lat && devicePos.lng) {
+      setForm(prev => ({ ...prev, lokasi: { lat: devicePos.lat, lng: devicePos.lng } }));
+      toast.success("Lokasi diperbarui dari GPS perangkat!");
+      return;
+    }
+
     if (!navigator.geolocation) return toast.error("Geolocation tidak didukung");
     const loadToast = toast.loading("Mencari koordinat Presensi...");
     navigator.geolocation.getCurrentPosition((pos) => {
@@ -178,14 +184,15 @@ const KelolaAbsensi = () => {
     }, (err) => {
       toast.dismiss(loadToast);
       console.error("Gagal get koordinat:", err);
-      if (err.code === 1) {
+      if (devicePos && devicePos.lat && devicePos.lng) {
+        setForm(prev => ({ ...prev, lokasi: { lat: devicePos.lat, lng: devicePos.lng } }));
+        toast.success("Lokasi diperbarui dari GPS perangkat!");
+      } else if (err.code === 1) {
         toast.error("Izin lokasi ditolak browser!");
-      } else if (err.code === 3) {
-        toast.error("Waktu pencarian lokasi habis (RTO)!");
       } else {
-        toast.error("Gagal akses lokasi perangkat!");
+        toast.error("Gagal mendapat GPS. Klik lokasi pada peta.");
       }
-    }, { enableHighAccuracy: false, timeout: 15000 });
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 });
   };
 
   const handleRadiusChange = (val) => {
@@ -199,6 +206,9 @@ const KelolaAbsensi = () => {
   };
 
   const handleSave = async () => {
+    const rawAllowed = form.allowed_kelas;
+    const allowedKelasStr = Array.isArray(rawAllowed) ? rawAllowed.join(", ") : (rawAllowed || "");
+
     // Validasi Form
     const emptyFields = [];
     if (!form.kode_matkul) emptyFields.push("Mata Kuliah");
@@ -206,7 +216,7 @@ const KelolaAbsensi = () => {
     if (!form.jam_selesai) emptyFields.push("Jam Selesai");
     if (form.toleransi === "" || form.toleransi === undefined) emptyFields.push("Toleransi Keterlambatan");
     if (!form.hari_aktif) emptyFields.push("Hari Aktif");
-    if (!form.allowed_kelas || form.allowed_kelas.trim() === "") emptyFields.push("Kelas yang Diizinkan");
+    if (!allowedKelasStr.trim()) emptyFields.push("Kelas yang Diizinkan");
     if (!form.lokasi || !form.lokasi.lat || !form.lokasi.lng) emptyFields.push("Titik Lokasi Peta");
     if (form.radius === "" || form.radius === undefined) emptyFields.push("Radius Presensi");
 
@@ -233,19 +243,24 @@ const KelolaAbsensi = () => {
       const selectedMatkulObj = matkulOptions.find(m => m.kode === form.kode_matkul);
       const namaMatkulFinal = selectedMatkulObj ? selectedMatkulObj.nama : "";
 
+      const allowedKelasArr = typeof rawAllowed === 'string'
+        ? rawAllowed.split(",").map(k => k.trim()).filter(k => k !== "")
+        : (Array.isArray(rawAllowed) ? rawAllowed.map(k => String(k).trim()).filter(k => k !== "") : []);
+
       const payload = {
         ...form,
         nama_matkul: namaMatkulFinal, 
         radius: finalRadius,
-        allowed_kelas: form.allowed_kelas.split(",").map(k => k.trim()).filter(k => k !== "")
+        allowed_kelas: allowedKelasArr
       };
       await axios.put("http://localhost:5000/api/admin/settings", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setForm(prev => ({ ...prev, radius: finalRadius }));
+      setForm(prev => ({ ...prev, radius: finalRadius, allowed_kelas: allowedKelasArr.join(", ") }));
       toast.success("Konfigurasi Berhasil Disimpan!");
     } catch (err) {
-      toast.error("Gagal menyimpan data");
+      console.error("Save settings error:", err);
+      toast.error(err.response?.data?.message || "Gagal menyimpan data");
     } finally {
       setSaveLoading(false);
     }
@@ -262,7 +277,7 @@ const KelolaAbsensi = () => {
     <div className="space-y-10">
       
       {/* HEADER PAGE */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-2 sm:px-6">
         <div className="flex items-center gap-4">
           {/* Logo Kampus untuk Mobile */}
           <img src={logoImage} alt="Logo Kampus" className="w-12 h-12 md:hidden object-contain" />
@@ -273,10 +288,10 @@ const KelolaAbsensi = () => {
       </div>
 
       {/* GRID CONTAINER UTAMA */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start px-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start px-2 sm:px-6">
         
         {/* CARD KIRI: SESI MATA KULIAH */}
-        <div className="md:col-span-12 lg:col-span-6 bg-white rounded-3xl md:rounded-[3.5rem] shadow-sm p-6 md:p-12 border border-slate-200 space-y-8">
+        <div className="lg:col-span-6 bg-white rounded-3xl md:rounded-[3.5rem] shadow-sm p-4 sm:p-8 md:p-12 border border-slate-200 space-y-6 sm:space-y-8">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-[#f2e6ff] text-[#52426b] border border-purple-100 rounded-2xl shadow-sm"><Settings size={22} /></div>
             <h3 className="text-xl font-black uppercase tracking-tight text-[#52426b]">Sesi Mata Kuliah</h3>
@@ -295,8 +310,8 @@ const KelolaAbsensi = () => {
                     form.kode_matkul ? 'text-slate-800' : 'text-slate-400'
                   }`}
                 >
-                  <span className="truncate max-w-[280px]">{form.kode_matkul ? `[${form.kode_matkul}] ${matkulOptions.find(m => m.kode === form.kode_matkul)?.nama}` : "-- Pilih Mata Kuliah --"}</span>
-                  <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isMatkulOpen ? 'rotate-180' : ''}`} />
+                  <span className="truncate flex-1 min-w-0 pr-2">{form.kode_matkul ? `[${form.kode_matkul}] ${matkulOptions.find(m => m.kode === form.kode_matkul)?.nama}` : "-- Pilih Mata Kuliah --"}</span>
+                  <ChevronDown size={18} className={`text-slate-400 shrink-0 transition-transform duration-300 ${isMatkulOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {isMatkulOpen && (
@@ -360,15 +375,15 @@ const KelolaAbsensi = () => {
         </div>
 
         {/* CARD KANAN: LOKASI PRESENSI */}
-        <div className="md:col-span-12 lg:col-span-6 space-y-8">
-          <div className="bg-white rounded-3xl md:rounded-[3.5rem] shadow-sm p-6 md:p-12 border border-slate-200 space-y-6">
+        <div className="lg:col-span-6 space-y-8 w-full">
+          <div className="bg-white rounded-3xl md:rounded-[3.5rem] shadow-sm p-4 sm:p-8 md:p-12 border border-slate-200 space-y-6">
             <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
               <div className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl shadow-sm"><MapPin size={22} /></div>
               <h3 className="text-xl font-black uppercase tracking-tight text-[#52426b]">Lokasi Presensi</h3>
             </div>
 
             {/* AREA MAPS */}
-            <div className="h-[340px] w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 relative z-0 isolate [transform:translate3d(0,0,0)]">
+            <div className="h-[260px] sm:h-[340px] w-full rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 relative z-0 isolate [transform:translate3d(0,0,0)]">
               <MapContainer 
                 center={[form.lokasi?.lat || -6.3686, form.lokasi?.lng || 106.8331]} 
                 zoom={16} 
@@ -430,8 +445,8 @@ const KelolaAbsensi = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end pt-2">
-              <div className="md:col-span-7">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end pt-2">
+              <div className="sm:col-span-7">
                 <InputGroup 
                   label="Radius Jangkauan (Meter)" 
                   type="number" 
@@ -440,7 +455,7 @@ const KelolaAbsensi = () => {
                   placeholder="50"
                 />
               </div>
-              <div className="md:col-span-5">
+              <div className="sm:col-span-5">
                 <button 
                   type="button"
                   onClick={handleSave}
@@ -454,7 +469,7 @@ const KelolaAbsensi = () => {
           </div>
 
           {/* SECURITY CARD */}
-          <div className="bg-[#2b2238] text-white rounded-[2.5rem] p-8 shadow-lg relative overflow-hidden flex items-center gap-6 border border-[#3a2e4b]">
+          <div className="bg-[#2b2238] text-white rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-lg relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 border border-[#3a2e4b]">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
             <ShieldCheck size={54} className="text-[#e4d6f3] opacity-80 shrink-0" />
             <div className="relative z-10">

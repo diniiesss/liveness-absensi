@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { User, IdCard, School, BookOpen, Lock, ArrowRight, Loader2, CheckCircle2, ChevronLeft, RefreshCw, X, ShieldAlert } from "lucide-react";
+import { User, IdCard, School, BookOpen, Lock, ArrowRight, Loader2, CheckCircle2, ChevronLeft, RefreshCw, X, ShieldAlert, Eye, EyeOff, Info } from "lucide-react";
 import * as faceapi from "face-api.js";
 import logoImage from '../components/logo.webp';
 import toast, { Toaster } from 'react-hot-toast';
@@ -16,6 +16,8 @@ const RegisterFace = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [form, setForm] = useState({
     nama: "", npm: "", kelas: "", jurusan: "", fakultas: "", password: "", confirmPassword: "",
@@ -78,6 +80,9 @@ const RegisterFace = () => {
 
   const handleNextToLiveness = async () => {
     if (Object.values(form).some(val => val === "")) return toast.error("Semua data wajib diisi!");
+    if (form.password.length < 6) return toast.error("Password minimal 6 karakter!");
+    if (!/[A-Z]/.test(form.password)) return toast.error("Password harus mengandung huruf besar (A-Z)!");
+    if (!/[_*#.]/.test(form.password)) return toast.error("Password harus mengandung simbol (_ * # .)!");
     if (form.password !== form.confirmPassword) return toast.error("Password tidak cocok!");
 
     setLoading(true);
@@ -254,8 +259,53 @@ const RegisterFace = () => {
                     </div>
                   )}
 
-                  <InputItem icon={Lock} name="password" placeholder="Password" type="password" onChange={(e) => setForm({...form, password: e.target.value})} value={form.password} />
-                  <InputItem icon={Lock} name="confirmPassword" placeholder="Konfirmasi" type="password" onChange={(e) => setForm({...form, confirmPassword: e.target.value})} value={form.confirmPassword} />
+                  {/* Input Password dengan Icon Mata */}
+                  <div className="relative group">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="Password"
+                      value={form.password}
+                      onChange={(e) => setForm({...form, password: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-12 text-sm font-bold focus:outline-none focus:border-black transition-all"
+                    />
+                    <Lock className="absolute left-4 top-4 text-gray-400 group-focus-within:text-black transition-colors" size={18} />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-4 text-gray-400 hover:text-black transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {/* Input Confirm Password dengan Icon Mata */}
+                  <div className="relative group">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      placeholder="Konfirmasi Password"
+                      value={form.confirmPassword}
+                      onChange={(e) => setForm({...form, confirmPassword: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-12 text-sm font-bold focus:outline-none focus:border-black transition-all"
+                    />
+                    <Lock className="absolute left-4 top-4 text-gray-400 group-focus-within:text-black transition-colors" size={18} />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-4 text-gray-400 hover:text-black transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {/* NOTE SYARAT PASSWORD */}
+                  <div className="bg-[#e4d6f3]/20 border border-[#e4d6f3]/40 p-3.5 rounded-2xl flex items-start gap-2.5">
+                    <Info className="text-[#e4d6f3] shrink-0 mt-0.5" size={16} />
+                    <p className="text-[11px] font-bold text-gray-200 leading-normal">
+                      <span className="font-black text-[#e4d6f3] uppercase tracking-wider">Syarat Password:</span> Min. 6 karakter, wajib mengandung 1 huruf besar (A-Z) & 1 simbol (_ * # .).
+                    </p>
+                  </div>
                   
                   <button onClick={handleNextToLiveness} disabled={loading} className="w-full bg-[#e4d6f7] text-[#52426b] font-bold py-5 rounded-3xl flex items-center justify-center gap-3 shadow-xl mt-4 uppercase text-[14px] tracking-widest">
                     {loading ? <Loader2 className="animate-spin" /> : <>Mulai Scan Wajah <ArrowRight size={18} /></>}

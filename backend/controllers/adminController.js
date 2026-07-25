@@ -298,11 +298,20 @@ exports.resetPasswordAdmin = async (req, res) => {
 // ⚙️ UPDATE SETTINGS (MULTI-SESSION PER ADMIN)
 // =========================================================================
 exports.updateSettings = async (req, res) => {
-  const { kode_matkul, jam_masuk, jam_selesai, toleransi, hari_aktif, lokasi, radius, allowed_kelas } = req.body;
+  const { kode_matkul, nama_matkul, jam_masuk, jam_selesai, toleransi, hari_aktif, lokasi, radius, allowed_kelas } = req.body;
   try {
     const lokasiJson = JSON.stringify(lokasi);
     const validatedRadius = radius > 100 ? 100 : (radius || 50);
     const admin_id = req.user.admin_id; 
+
+    if (kode_matkul && nama_matkul) {
+      await pool.query(
+        `INSERT INTO mata_kuliah (kode_matkul, nama_matkul)
+         VALUES ($1, $2)
+         ON CONFLICT (kode_matkul) DO UPDATE SET nama_matkul = EXCLUDED.nama_matkul`,
+        [kode_matkul, nama_matkul]
+      );
+    }
 
     const check = await pool.query('SELECT admin_id FROM admin_settings WHERE admin_id = $1', [admin_id]);
     
