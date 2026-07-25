@@ -27,6 +27,7 @@ module.exports = (setupAbsentMarkingSchedulerCallback) => {
 
   // [PROFIL & KEAMANAN ADMIN]
   router.get('/profile', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.getAdminProfile);
+  router.put('/profile/photo', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.updateAdminPhoto);
   router.put('/update-password', authMiddleware.verifyToken, authMiddleware.isAdmin, adminController.updateAdminPassword);
 
   // [PENGATURAN SISTEM (SETTINGS)]

@@ -60,7 +60,7 @@ exports.loginAdmin = async (req, res) => {
 exports.getAdminProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, email FROM admin WHERE id = $1', 
+      'SELECT id, username, email, foto_profil FROM admin WHERE id = $1', 
       [req.user.admin_id]
     );
 
@@ -70,8 +70,35 @@ exports.getAdminProfile = async (req, res) => {
 
     return res.json(result.rows[0]);
   } catch (err) {
+    try {
+      const fallback = await pool.query('SELECT id, username, email FROM admin WHERE id = $1', [req.user.admin_id]);
+      if (fallback.rows.length > 0) return res.json({ ...fallback.rows[0], foto_profil: null });
+    } catch (e) {}
     console.error('❌ Error getAdminProfile:', err);
     return res.status(500).json({ message: 'Gagal mengambil data profil' });
+  }
+};
+
+exports.updateAdminPhoto = async (req, res) => {
+  const { foto_profil } = req.body;
+  try {
+    try {
+      await pool.query('ALTER TABLE admin ADD COLUMN IF NOT EXISTS foto_profil TEXT;');
+    } catch (e) {}
+
+    const result = await pool.query(
+      'UPDATE admin SET foto_profil = $1 WHERE id = $2 RETURNING id, username, email, foto_profil', 
+      [foto_profil, req.user.admin_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Admin tidak ditemukan' });
+    }
+
+    return res.json({ success: true, message: 'Foto profil berhasil diperbarui', admin: result.rows[0] });
+  } catch (err) {
+    console.error('❌ Error updateAdminPhoto:', err);
+    return res.status(500).json({ message: 'Gagal memperbarui foto profil' });
   }
 };
 
@@ -182,10 +209,12 @@ exports.getDaftarKehadiran = async (req, res) => {
     let query = `
       SELECT
         a.id, a.waktu_absen, a.lokasi_lat, a.lokasi_lng, a.status, mk.nama_matkul, a.kode_matkul,
-        m.nama AS nama_lengkap, m.npm, m.kelas, m.jurusan
+        m.nama AS nama_lengkap, m.npm, m.kelas, m.jurusan,
+        s.lokasi AS settings_lokasi
       FROM absensi a
       LEFT JOIN mahasiswa m ON a.npm = m.npm
       LEFT JOIN mata_kuliah mk ON a.kode_matkul = mk.kode_matkul
+      LEFT JOIN admin_settings s ON a.kode_matkul = s.kode_matkul
     `;
 
     const queryParams = [];
@@ -225,18 +254,28 @@ exports.getDaftarKehadiran = async (req, res) => {
     query += ` ORDER BY a.waktu_absen DESC`;
     const result = await pool.query(query, queryParams);
 
-    const formatted = result.rows.map(row => ({
-      nama: row.nama_lengkap || "Mahasiswa Tidak Terdaftar",
-      npm: row.npm,
-      kelas: row.kelas || "-",
-      jurusan: row.jurusan || "-",
-      mata_kuliah: row.nama_matkul,
-      status: row.status,
-      tanggal: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('YYYY-MM-DD'),
-      jam: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('HH:mm:ss'),
-      lokasi_lat: row.lokasi_lat,
-      lokasi_lng: row.lokasi_lng
-    }));
+    const formatted = result.rows.map(row => {
+      let alamatText = "Area Kampus";
+      if (row.settings_lokasi) {
+        try {
+          const loc = typeof row.settings_lokasi === 'string' ? JSON.parse(row.settings_lokasi) : row.settings_lokasi;
+          if (loc.alamat) alamatText = loc.alamat;
+        } catch (e) {}
+      }
+      return {
+        nama: row.nama_lengkap || "Mahasiswa Tidak Terdaftar",
+        npm: row.npm,
+        kelas: row.kelas || "-",
+        jurusan: row.jurusan || "-",
+        mata_kuliah: row.nama_matkul,
+        status: row.status,
+        tanggal: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('YYYY-MM-DD'),
+        jam: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('HH:mm:ss'),
+        lokasi_lat: row.lokasi_lat,
+        lokasi_lng: row.lokasi_lng,
+        detail_alamat: alamatText
+      };
+    });
 
     return res.json(formatted);
   } catch (err) {

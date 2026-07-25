@@ -289,9 +289,12 @@ const Riwayat = () => {
                       }`}>{h.status}</span>
                     </td>
                     <td className="px-6 py-6 last:rounded-r-2xl">
-                      <span className="font-bold text-[#52426b] text-[14px] tracking-tight">
-                        {h.lokasi_lat ? `${h.lokasi_lat.toFixed(4)}, ${h.lokasi_lng.toFixed(4)}` : "-"}
-                      </span>
+                      <div className="flex items-center gap-1.5 max-w-[220px] truncate" title={h.detail_alamat || "Area Kampus"}>
+                        <MapPin size={13} className="text-[#52426b] shrink-0" />
+                        <span className="font-bold text-[#52426b] text-[14px] tracking-tight truncate">
+                          {h.detail_alamat || "Area Kampus"}
+                        </span>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -329,9 +332,9 @@ const Riwayat = () => {
                     <Calendar size={14} className="text-[#52426b]" />
                     <span>{dayjs(h.waktu_absen).locale('id').format('DD MMM YYYY')} ({dayjs(h.waktu_absen).format('HH:mm')})</span>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <MapPin size={14} className="text-[#52426b]" />
-                    <span className="font-mono">{h.lokasi_lat ? `${h.lokasi_lat.toFixed(4)}, ${h.lokasi_lng.toFixed(4)}` : "-"}</span>
+                  <div className="flex items-center gap-1.5 min-w-0 max-w-[50%]">
+                    <MapPin size={14} className="text-[#52426b] shrink-0" />
+                    <span className="truncate" title={h.detail_alamat}>{h.detail_alamat || "Area Kampus"}</span>
                   </div>
                 </div>
               </div>

@@ -272,8 +272,9 @@ const MonitoringKehadiran = () => {
                       <HighlightText text={a.kelas} highlight={filterKelas} />
                     </td>
                     <td className="py-7 px-6 text-center">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[13px] font-bold uppercase">
-                        <MapPin size={12} /> {a.lokasi_lat?.toFixed(2)}, {a.lokasi_lng?.toFixed(2)}
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[13px] font-bold max-w-[220px] truncate" title={a.detail_alamat || "Area Kampus"}>
+                        <MapPin size={12} className="shrink-0 text-[#52426b]" /> 
+                        <span className="truncate">{a.detail_alamat || "Area Kampus"}</span>
                       </div>
                     </td>
                     <td className="py-7 px-6 text-center">
@@ -343,9 +344,9 @@ const MonitoringKehadiran = () => {
                     <Clock size={14} className="text-[#52426b]" />
                     <span>{a.tanggal} ({a.jam})</span>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <MapPin size={14} className="text-[#52426b]" />
-                    <span>{a.lokasi_lat?.toFixed(4)}, {a.lokasi_lng?.toFixed(4)}</span>
+                  <div className="flex items-center gap-1.5 min-w-0 max-w-[50%]">
+                    <MapPin size={14} className="text-[#52426b] shrink-0" />
+                    <span className="truncate" title={a.detail_alamat}>{a.detail_alamat || "Area Kampus"}</span>
                   </div>
                 </div>
               </div>

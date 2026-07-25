@@ -311,9 +311,11 @@ const getRiwayatAbsensi = async (req, res) => {
                 a.lokasi_lat, 
                 a.lokasi_lng, 
                 a.kode_matkul,
-                mk.nama_matkul
+                mk.nama_matkul,
+                s.lokasi AS settings_lokasi
             FROM absensi a
             LEFT JOIN mata_kuliah mk ON a.kode_matkul = mk.kode_matkul
+            LEFT JOIN admin_settings s ON a.kode_matkul = s.kode_matkul
             WHERE a.npm = $1
         `;
         let params = [npm];
@@ -332,7 +334,21 @@ const getRiwayatAbsensi = async (req, res) => {
         query += ` ORDER BY a.waktu_absen DESC`;
         const result = await pool.query(query, params);
         
-        res.json({ success: true, riwayat: result.rows });
+        const formatted = result.rows.map(row => {
+            let alamatText = "Area Kampus";
+            if (row.settings_lokasi) {
+                try {
+                    const loc = typeof row.settings_lokasi === 'string' ? JSON.parse(row.settings_lokasi) : row.settings_lokasi;
+                    if (loc.alamat) alamatText = loc.alamat;
+                } catch (e) {}
+            }
+            return {
+                ...row,
+                detail_alamat: alamatText
+            };
+        });
+
+        res.json({ success: true, riwayat: formatted });
     } catch (err) { 
         console.error('❌ Error getRiwayatAbsensi:', err);
         res.status(500).json({ message: 'Error server riwayat.' }); 

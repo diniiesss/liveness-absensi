@@ -54,7 +54,7 @@ const AdminProfile = () => {
             username: res.data.username || "ADMIN",
             email: res.data.email || "admin@gunadarma.ac.id",
             role: "Super Administrator",
-            photo: res.data.photo || null
+            photo: res.data.foto_profil || res.data.photo || null
           });
         }
       } catch (err) {
@@ -70,18 +70,37 @@ const AdminProfile = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAdminData({ ...adminData, photo: reader.result });
-        toast.success(`Foto profil diperbarui!`);
+      reader.onloadend = async () => {
+        const photoData = reader.result;
+        setAdminData(prev => ({ ...prev, photo: photoData }));
+        const loadToast = toast.loading("Menyimpan foto profil...");
+        try {
+          const token = localStorage.getItem("admin_token");
+          await axios.put("http://localhost:5000/api/admin/profile/photo", { foto_profil: photoData }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          toast.success("Foto profil disimpan ke database!", { id: loadToast });
+        } catch (err) {
+          toast.error("Gagal menyimpan foto profil", { id: loadToast });
+        }
       };
       reader.readAsDataURL(file);
     }
     setShowPhotoMenu(false);
   };
 
-  const confirmDeletePhoto = () => {
-    setAdminData({ ...adminData, photo: null });
-    toast.success("Foto profil berhasil dihapus");
+  const confirmDeletePhoto = async () => {
+    setAdminData(prev => ({ ...prev, photo: null }));
+    const loadToast = toast.loading("Menghapus foto...");
+    try {
+      const token = localStorage.getItem("admin_token");
+      await axios.put("http://localhost:5000/api/admin/profile/photo", { foto_profil: null }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Foto profil berhasil dihapus!", { id: loadToast });
+    } catch (err) {
+      toast.error("Gagal menghapus foto profil", { id: loadToast });
+    }
     setIsDeleteModalOpen(false);
   };
 
