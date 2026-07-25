@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as faceapi from "face-api.js";
 import axios from "axios";
-import { Camera, RefreshCw, CheckCircle, BookOpen, Clock, MapPin, ShieldCheck, ScanFace } from "lucide-react";
+import { Camera, RefreshCw, CheckCircle, BookOpen, Clock, MapPin, ShieldCheck, ScanFace, AlertTriangle } from "lucide-react";
 import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import toast, { Toaster } from 'react-hot-toast';
@@ -39,6 +39,7 @@ const Dashboard = () => {
   const [userPos, setUserPos] = useState(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [status, setStatus] = useState("Siap melakukan absensi");
+  const [warningNotice, setWarningNotice] = useState("");
   const [locationAllowed, setLocationAllowed] = useState(false);
   const [isTimeValid, setIsTimeValid] = useState(false);
   const [isAlreadyAttended, setIsAlreadyAttended] = useState(false);
@@ -203,14 +204,44 @@ const Dashboard = () => {
     }
   };
 
+  const checkBrightness = (videoEl) => {
+    try {
+      if (!videoEl || videoEl.videoWidth === 0) return 100;
+      const canvas = document.createElement("canvas");
+      canvas.width = 64; canvas.height = 48;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(videoEl, 0, 0, 64, 48);
+      const imgData = ctx.getImageData(0, 0, 64, 48);
+      let totalLuminance = 0;
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        totalLuminance += 0.299 * imgData.data[i] + 0.587 * imgData.data[i + 1] + 0.114 * imgData.data[i + 2];
+      }
+      return totalLuminance / (imgData.data.length / 4);
+    } catch (e) { return 100; }
+  };
+
   const runLivenessLoop = (challenges, descriptorReference) => {
     let currentStep = 0;
     setStatus(challenges[currentStep].label);
     detectionIntervalId.current = setInterval(async () => {
       if (!videoRef.current) return;
-      const det = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 416 }))
-        .withFaceLandmarks().withFaceExpressions().withFaceDescriptor();
-      if (det && challenges[currentStep].check(det)) {
+
+      const brightness = checkBrightness(videoRef.current);
+      if (brightness < 55) {
+        setWarningNotice("💡 Cahaya terlalu redup! Mohon berpindah ke ruangan yang lebih terang.");
+      } else {
+        setWarningNotice("");
+      }
+
+      const det = await faceapi.detectSingleFace(
+        videoRef.current, 
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })
+      ).withFaceLandmarks().withFaceExpressions();
+
+      if (!det) {
+        setWarningNotice("⚠️ Wajah tidak jelas/tertutup! Mohon lepas masker, kacamata hitam, atau penutup wajah.");
+      } else if (det && challenges[currentStep].check(det)) {
+        setWarningNotice("");
         if (currentStep < challenges.length - 1) {
           currentStep++;
           setStatus("Bagus! " + challenges[currentStep].label);
@@ -220,7 +251,7 @@ const Dashboard = () => {
           handleFinalSubmit(descriptorReference);
         }
       }
-    }, 450); 
+    }, 250); 
   };
 
   const startAbsensi = async () => {
@@ -230,22 +261,38 @@ const Dashboard = () => {
     try {
       setScanFailed(false);
       setIsScanning(true);
-      setStatus("Menganalisis...");
+      setWarningNotice("");
+      setStatus("Membuka Kamera...");
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       streamRef.current = stream;
       setIsCameraOn(true);
+      
+      // Deteksi wajah langsung setelah kamera siap (hanya delay 400ms)
       setTimeout(async () => {
-        const det = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks().withFaceDescriptor();
+        if (!videoRef.current) return;
+        setStatus("Deteksi Wajah...");
+
+        const brightness = checkBrightness(videoRef.current);
+        if (brightness < 55) {
+          setWarningNotice("💡 Pencahayaan kurang terang! Mohon cari tempat yang lebih terang.");
+        }
+
+        const det = await faceapi.detectSingleFace(
+          videoRef.current, 
+          new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })
+        ).withFaceLandmarks().withFaceDescriptor();
+
         if (det) {
+          setWarningNotice("");
           const shuffled = [...challengeLibrary].sort(() => 0.5 - Math.random()).slice(0, 2);
           runLivenessLoop(shuffled, det.descriptor);
         } else {
-          toast.error("Wajah tidak jelas.");
+          setWarningNotice("⚠️ Wajah tidak terdeteksi! Lepas masker, kacamata hitam, atau penutup wajah.");
+          toast.error("Wajah tidak jelas. Pastikan lepas masker/kacamata hitam.");
           stopCamera();
         }
-      }, 2000);
-    } catch (e) { toast.error("Kamera gagal."); setIsScanning(false); }
+      }, 400);
+    } catch (e) { toast.error("Gagal membuka kamera."); setIsScanning(false); }
   };
 
   const stopCamera = () => {
@@ -253,6 +300,7 @@ const Dashboard = () => {
     if (detectionIntervalId.current) clearInterval(detectionIntervalId.current);
     setIsCameraOn(false);
     setIsScanning(false);
+    setWarningNotice("");
     if (!isAlreadyAttended) setStatus("Siap melakukan absensi");
   };
 
@@ -285,12 +333,27 @@ const Dashboard = () => {
           </div>
         </div>
 
-            <div className="w-full aspect-[4/3] bg-[#F8F4FF] rounded-[2.5rem] border border-[#f2e6ff] flex items-center justify-center overflow-hidden relative shadow-inner mb-8">
+            <div className="w-full aspect-[4/3] bg-[#F8F4FF] rounded-[2.5rem] border border-[#f2e6ff] flex items-center justify-center overflow-hidden relative shadow-inner mb-4">
               {!isCameraOn ? (
                 <Camera size={100} className="text-gray-300" />
               ) : (
                 <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover scale-x-[-1]" />
               )}
+            </div>
+
+            {/* KOTAK WARNING SIGN TEPAT DI BAWAH FRAME KAMERA */}
+            <div className="w-full mb-8 p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-sm transition-all duration-300">
+              <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={20} />
+              <div className="text-[11px] font-bold leading-relaxed">
+                <span className="font-black uppercase tracking-wider block text-amber-800 mb-0.5">Petunjuk & Validasi Kamera:</span>
+                {warningNotice ? (
+                  <span className="text-rose-600 font-black animate-pulse block">{warningNotice}</span>
+                ) : (
+                  <span className="text-slate-600">
+                    Pastikan pencahayaan cukup terang. Mohon <strong>lepas masker, kacamata hitam, topi</strong>, atau penutup wajah lainnya agar verifikasi liveness berhasil.
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="w-full">

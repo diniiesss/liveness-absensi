@@ -52,9 +52,12 @@ function AppContent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. INTERCEPTOR REQUEST: Otomatis nempel token ke setiap request
+    // 1. INTERCEPTOR REQUEST: Otomatis nempel token ke setiap request sesuai role/route
     const requestInterceptor = axios.interceptors.request.use((config) => {
-      const token = localStorage.getItem('admin_token') || localStorage.getItem('mahasiswa_token');
+      const isAdminRoute = window.location.pathname.startsWith('/admin') || (config.url && config.url.includes('/api/admin'));
+      const token = isAdminRoute 
+        ? (localStorage.getItem('admin_token') || localStorage.getItem('mahasiswa_token'))
+        : (localStorage.getItem('mahasiswa_token') || localStorage.getItem('admin_token'));
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

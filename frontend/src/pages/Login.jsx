@@ -27,6 +27,11 @@ const Login = () => {
 
       if (res.data.success) {
         const role = isAdmin ? "admin" : "mahasiswa";
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('mahasiswa_token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('npm');
+
         localStorage.setItem(`${role}_token`, res.data.token);
         localStorage.setItem("role", role);
         if (!isAdmin) localStorage.setItem("npm", res.data.mahasiswa.npm);
