@@ -129,6 +129,9 @@ const KelolaAbsensi = () => {
             formattedHariAktif = `${year}-${month}-${day}`;
           }
         }
+        if (res.data.lokasi && res.data.lokasi.alamat) {
+          setAddress(res.data.lokasi.alamat);
+        }
         setForm({
           ...res.data,
           hari_aktif: formattedHariAktif,
@@ -249,6 +252,11 @@ const KelolaAbsensi = () => {
 
       const payload = {
         ...form,
+        lokasi: {
+          lat: form.lokasi.lat,
+          lng: form.lokasi.lng,
+          alamat: address || "Lokasi Kampus"
+        },
         nama_matkul: namaMatkulFinal, 
         radius: finalRadius,
         allowed_kelas: allowedKelasArr
