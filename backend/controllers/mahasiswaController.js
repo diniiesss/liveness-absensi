@@ -154,6 +154,7 @@ const absen = async (req, res) => {
             : student.face_descriptor;
 
         const distance = faceapi.euclideanDistance(new Float32Array(faceDescriptor), new Float32Array(storedDescriptor));
+        console.log(`📊 [Biometric Match] NPM: ${npmDariToken} | Distance: ${distance.toFixed(4)} | Threshold: ${FACE_MATCH_THRESHOLD}`);
         if (distance > FACE_MATCH_THRESHOLD) return res.status(403).json({ message: 'Wajah tidak cocok.' });
 
         const statusAbsen = now.isAfter(startTime.add(settings.toleransi, 'minute')) ? 'Terlambat' : 'Hadir';

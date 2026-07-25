@@ -245,7 +245,7 @@ const Dashboard = () => {
 
       const det = await faceapi.detectSingleFace(
         videoRef.current, 
-        new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })
+        new faceapi.TinyFaceDetectorOptions()
       ).withFaceLandmarks().withFaceExpressions().withFaceDescriptor();
 
       if (!det) {
