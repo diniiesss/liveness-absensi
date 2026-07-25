@@ -381,8 +381,13 @@ const getRiwayatAbsensi = async (req, res) => {
                     if ((!lngFinal || parseFloat(lngFinal) === 0) && loc.lng) lngFinal = loc.lng;
                 } catch (e) {}
             }
+
+            const d = dayjs(row.waktu_absen);
+            const waktuStr = d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : String(row.waktu_absen);
+
             return {
                 ...row,
+                waktu_absen: waktuStr,
                 lokasi_lat: latFinal ? parseFloat(latFinal) : null,
                 lokasi_lng: lngFinal ? parseFloat(lngFinal) : null,
                 detail_alamat: alamatText
