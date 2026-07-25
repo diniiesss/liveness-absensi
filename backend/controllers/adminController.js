@@ -210,7 +210,7 @@ exports.getDaftarKehadiran = async (req, res) => {
       SELECT
         a.id, a.waktu_absen, a.lokasi_lat, a.lokasi_lng, a.status, mk.nama_matkul, a.kode_matkul,
         m.nama AS nama_lengkap, m.npm, m.kelas, m.jurusan,
-        s.lokasi AS settings_lokasi
+        COALESCE(s.lokasi, (SELECT lokasi FROM admin_settings ORDER BY id DESC LIMIT 1)) AS settings_lokasi
       FROM absensi a
       LEFT JOIN mahasiswa m ON a.npm = m.npm
       LEFT JOIN mata_kuliah mk ON a.kode_matkul = mk.kode_matkul
@@ -255,13 +255,19 @@ exports.getDaftarKehadiran = async (req, res) => {
     const result = await pool.query(query, queryParams);
 
     const formatted = result.rows.map(row => {
-      let alamatText = "Area Kampus";
+      let alamatText = null;
+      let latFinal = row.lokasi_lat;
+      let lngFinal = row.lokasi_lng;
+
       if (row.settings_lokasi) {
         try {
           const loc = typeof row.settings_lokasi === 'string' ? JSON.parse(row.settings_lokasi) : row.settings_lokasi;
           if (loc.alamat) alamatText = loc.alamat;
+          if ((!latFinal || parseFloat(latFinal) === 0) && loc.lat) latFinal = loc.lat;
+          if ((!lngFinal || parseFloat(lngFinal) === 0) && loc.lng) lngFinal = loc.lng;
         } catch (e) {}
       }
+
       return {
         nama: row.nama_lengkap || "Mahasiswa Tidak Terdaftar",
         npm: row.npm,
@@ -271,8 +277,8 @@ exports.getDaftarKehadiran = async (req, res) => {
         status: row.status,
         tanggal: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('YYYY-MM-DD'),
         jam: dayjs(row.waktu_absen).tz('Asia/Jakarta').format('HH:mm:ss'),
-        lokasi_lat: row.lokasi_lat,
-        lokasi_lng: row.lokasi_lng,
+        lokasi_lat: latFinal ? parseFloat(latFinal) : null,
+        lokasi_lng: lngFinal ? parseFloat(lngFinal) : null,
         detail_alamat: alamatText
       };
     });

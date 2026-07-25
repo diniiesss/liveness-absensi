@@ -17,6 +17,46 @@ const DAFTAR_MATKUL = [
   { kode: 'PB045205', nama: 'Bahasa Mandarin' }
 ];
 
+const LocationAddress = ({ lat, lng, defaultAddress }) => {
+  const [addr, setAddr] = useState(
+    defaultAddress && defaultAddress !== "Area Kampus" ? defaultAddress : null
+  );
+
+  useEffect(() => {
+    if (defaultAddress && defaultAddress !== "Area Kampus") {
+      setAddr(defaultAddress);
+      return;
+    }
+    
+    const useLat = lat || -6.3686;
+    const useLng = lng || 106.8331;
+
+    const cacheKey = `${useLat.toFixed(4)}_${useLng.toFixed(4)}`;
+    if (window._geoCache && window._geoCache[cacheKey]) {
+      setAddr(window._geoCache[cacheKey]);
+      return;
+    }
+
+    axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${useLat}&lon=${useLng}`, {
+      headers: { 'Accept-Language': 'id' }
+    }).then(res => {
+      if (res.data && res.data.display_name) {
+        if (!window._geoCache) window._geoCache = {};
+        window._geoCache[cacheKey] = res.data.display_name;
+        setAddr(res.data.display_name);
+      }
+    }).catch(e => {
+      setAddr("Kampus Gunadarma");
+    });
+  }, [lat, lng, defaultAddress]);
+
+  return (
+    <span className="truncate" title={addr || defaultAddress || "Kampus Gunadarma"}>
+      {addr || defaultAddress || "Kampus Gunadarma"}
+    </span>
+  );
+};
+
 const Riwayat = () => {
   const [history, setHistory] = useState([]);
   const [profile, setProfile] = useState({ nama: '', npm: '' });
@@ -289,10 +329,10 @@ const Riwayat = () => {
                       }`}>{h.status}</span>
                     </td>
                     <td className="px-6 py-6 last:rounded-r-2xl">
-                      <div className="flex items-center gap-1.5 max-w-[220px] truncate" title={h.detail_alamat || "Area Kampus"}>
+                      <div className="flex items-center gap-1.5 max-w-[220px] truncate">
                         <MapPin size={13} className="text-[#52426b] shrink-0" />
                         <span className="font-bold text-[#52426b] text-[14px] tracking-tight truncate">
-                          {h.detail_alamat || "Area Kampus"}
+                          <LocationAddress lat={h.lokasi_lat} lng={h.lokasi_lng} defaultAddress={h.detail_alamat} />
                         </span>
                       </div>
                     </td>
@@ -334,7 +374,7 @@ const Riwayat = () => {
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0 max-w-[50%]">
                     <MapPin size={14} className="text-[#52426b] shrink-0" />
-                    <span className="truncate" title={h.detail_alamat}>{h.detail_alamat || "Area Kampus"}</span>
+                    <LocationAddress lat={h.lokasi_lat} lng={h.lokasi_lng} defaultAddress={h.detail_alamat} />
                   </div>
                 </div>
               </div>

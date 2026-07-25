@@ -312,7 +312,7 @@ const getRiwayatAbsensi = async (req, res) => {
                 a.lokasi_lng, 
                 a.kode_matkul,
                 mk.nama_matkul,
-                s.lokasi AS settings_lokasi
+                COALESCE(s.lokasi, (SELECT lokasi FROM admin_settings ORDER BY id DESC LIMIT 1)) AS settings_lokasi
             FROM absensi a
             LEFT JOIN mata_kuliah mk ON a.kode_matkul = mk.kode_matkul
             LEFT JOIN admin_settings s ON a.kode_matkul = s.kode_matkul
@@ -335,15 +335,22 @@ const getRiwayatAbsensi = async (req, res) => {
         const result = await pool.query(query, params);
         
         const formatted = result.rows.map(row => {
-            let alamatText = "Area Kampus";
+            let alamatText = null;
+            let latFinal = row.lokasi_lat;
+            let lngFinal = row.lokasi_lng;
+
             if (row.settings_lokasi) {
                 try {
                     const loc = typeof row.settings_lokasi === 'string' ? JSON.parse(row.settings_lokasi) : row.settings_lokasi;
                     if (loc.alamat) alamatText = loc.alamat;
+                    if ((!latFinal || parseFloat(latFinal) === 0) && loc.lat) latFinal = loc.lat;
+                    if ((!lngFinal || parseFloat(lngFinal) === 0) && loc.lng) lngFinal = loc.lng;
                 } catch (e) {}
             }
             return {
                 ...row,
+                lokasi_lat: latFinal ? parseFloat(latFinal) : null,
+                lokasi_lng: lngFinal ? parseFloat(lngFinal) : null,
                 detail_alamat: alamatText
             };
         });

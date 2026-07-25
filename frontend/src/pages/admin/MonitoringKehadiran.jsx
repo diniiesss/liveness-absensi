@@ -25,6 +25,46 @@ const HighlightText = ({ text, highlight }) => {
   );
 };
 
+const LocationAddress = ({ lat, lng, defaultAddress }) => {
+  const [addr, setAddr] = useState(
+    defaultAddress && defaultAddress !== "Area Kampus" ? defaultAddress : null
+  );
+
+  useEffect(() => {
+    if (defaultAddress && defaultAddress !== "Area Kampus") {
+      setAddr(defaultAddress);
+      return;
+    }
+    
+    const useLat = lat || -6.3686;
+    const useLng = lng || 106.8331;
+
+    const cacheKey = `${useLat.toFixed(4)}_${useLng.toFixed(4)}`;
+    if (window._geoCache && window._geoCache[cacheKey]) {
+      setAddr(window._geoCache[cacheKey]);
+      return;
+    }
+
+    axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${useLat}&lon=${useLng}`, {
+      headers: { 'Accept-Language': 'id' }
+    }).then(res => {
+      if (res.data && res.data.display_name) {
+        if (!window._geoCache) window._geoCache = {};
+        window._geoCache[cacheKey] = res.data.display_name;
+        setAddr(res.data.display_name);
+      }
+    }).catch(e => {
+      setAddr("Kampus Gunadarma");
+    });
+  }, [lat, lng, defaultAddress]);
+
+  return (
+    <span className="truncate" title={addr || defaultAddress || "Kampus Gunadarma"}>
+      {addr || defaultAddress || "Kampus Gunadarma"}
+    </span>
+  );
+};
+
 const MATKUL_OPTIONS = [
   "Algoritma dan Pengolahan Paralel",
   "Pemrograman Jaringan",
@@ -272,9 +312,9 @@ const MonitoringKehadiran = () => {
                       <HighlightText text={a.kelas} highlight={filterKelas} />
                     </td>
                     <td className="py-7 px-6 text-center">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[13px] font-bold max-w-[220px] truncate" title={a.detail_alamat || "Area Kampus"}>
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[13px] font-bold max-w-[220px] truncate">
                         <MapPin size={12} className="shrink-0 text-[#52426b]" /> 
-                        <span className="truncate">{a.detail_alamat || "Area Kampus"}</span>
+                        <LocationAddress lat={a.lokasi_lat} lng={a.lokasi_lng} defaultAddress={a.detail_alamat} />
                       </div>
                     </td>
                     <td className="py-7 px-6 text-center">
@@ -346,7 +386,7 @@ const MonitoringKehadiran = () => {
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0 max-w-[50%]">
                     <MapPin size={14} className="text-[#52426b] shrink-0" />
-                    <span className="truncate" title={a.detail_alamat}>{a.detail_alamat || "Area Kampus"}</span>
+                    <LocationAddress lat={a.lokasi_lat} lng={a.lokasi_lng} defaultAddress={a.detail_alamat} />
                   </div>
                 </div>
               </div>
