@@ -68,13 +68,13 @@ const DashboardHome = () => {
   }, []);
 
   return (
-    <div key="dashboard" className="space-y-10 animate-in fade-in duration-500">
+    <div key="dashboard" className="space-y-8 pt-4 pb-36 md:pb-10 animate-in fade-in duration-500 min-w-0 overflow-x-hidden">
       
       {/* --- SECTION 1: WELCOME HEADER --- */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-6">
-        <div className="flex items-start gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 sm:px-6">
+        <div className="flex items-start gap-3 sm:gap-4">
           {/* Logo Kampus untuk Mobile */}
-          <img src={logoImage} alt="Logo Kampus" className="w-12 h-12 md:hidden object-contain mt-1" />
+          <img src={logoImage} alt="Logo Kampus" className="w-10 h-10 md:hidden object-contain mt-1" />
           <div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 leading-none italic uppercase tracking-tighter">
               Hi,  <span className="text-[#52426b]">{adminName || "Loading..."}!</span>
@@ -87,9 +87,9 @@ const DashboardHome = () => {
         </div>
       </div>
 
-      <div className="px-6 space-y-10">
+      <div className="px-3 sm:px-6 space-y-8 sm:space-y-10">
         {/* --- SECTION 2: 3 STATS CARDS --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           <StatCard 
             title="Total Peserta Sesi" 
             value={stats.totalAbsensi} 
@@ -117,19 +117,50 @@ const DashboardHome = () => {
         </div>
 
         {/* --- SECTION 3: TABEL RIWAYAT TERKINI --- */}
-        <div className="bg-white rounded-2xl md:rounded-[3.5rem] shadow-sm border border-slate-200 overflow-hidden relative">
+        <div className="bg-white rounded-3xl md:rounded-[3.5rem] shadow-sm border border-slate-200 overflow-hidden relative">
           {loading && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20 flex items-center justify-center">
               <Loader2 className="animate-spin text-[#52426b]" size={32} />
             </div>
           )}
 
-          <div className="p-8 md:p-12 border-b border-slate-100 flex justify-between items-center bg-slate-50/10">
-            <h4 className="text-xl font-black uppercase tracking-tight text-[#52426b]">Aktivitas Absensi Terkini</h4>
+          <div className="p-5 sm:p-8 md:p-12 border-b border-slate-100 flex justify-between items-center bg-slate-50/10">
+            <h4 className="text-lg sm:text-xl font-black uppercase tracking-tight text-[#52426b]">Aktivitas Absensi Terkini</h4>
             <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg uppercase tracking-wider">6 Data Terbaru</span>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* VIEW TAMPILAN MOBILE (CARDS STACKED) */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {recentAttendance.length > 0 ? (
+              recentAttendance.map((item, idx) => (
+                <div key={idx} className="p-4 flex flex-col gap-2 bg-white">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-800 text-[13px] uppercase truncate">{item.nama}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{item.npm} • {item.kelas}</p>
+                    </div>
+                    <span className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                      item.status === 'Hadir' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                      item.status === 'Terlambat' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-rose-50 text-rose-700 border-rose-100'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold">
+                    <Clock size={12} className="text-[#52426b]" />
+                    <span>{item.tanggal} ({item.jam})</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-slate-400 font-black text-xs uppercase italic tracking-widest px-4">
+                Belum ada aktivitas absensi pada sesi ini.
+              </div>
+            )}
+          </div>
+
+          {/* VIEW TABLE KHUSUS DESKTOP */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-black uppercase tracking-widest text-[#52426b] border-b border-slate-100">
@@ -168,7 +199,7 @@ const DashboardHome = () => {
             </table>
           </div>
 
-          <div className="p-10 flex justify-center border-t border-slate-100 bg-slate-50">
+          <div className="p-6 sm:p-10 flex justify-center border-t border-slate-100 bg-slate-50">
             <Link 
               to="/admin/monitoring" 
               className="flex items-center gap-3 text-[#52426b] font-black uppercase text-[12px] tracking-[0.2em] hover:gap-5 transition-all duration-300 group"

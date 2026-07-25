@@ -137,7 +137,7 @@ const AdminProfile = () => {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 pt-4 pb-36 md:pb-10 animate-in fade-in duration-500 min-w-0 overflow-x-hidden">
       
       {/* MODAL DELETE */}
       {isDeleteModalOpen && (
@@ -159,11 +159,11 @@ const AdminProfile = () => {
       )}
 
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-6">
-        <div className="flex items-center gap-4">
-          <img src={logoImage} alt="Logo Kampus" className="w-12 h-12 md:hidden object-contain" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 sm:px-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <img src={logoImage} alt="Logo Kampus" className="w-10 h-10 md:hidden object-contain" />
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-slate-800 leading-none">
-            Admin <br /> <span className="text-[#52426b]">Profile</span>
+            Profil <br /> <span className="text-[#52426b]">Administrator</span>
           </h2>
         </div>
       </div>
