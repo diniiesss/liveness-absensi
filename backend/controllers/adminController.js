@@ -263,7 +263,11 @@ exports.getDaftarKehadiran = async (req, res) => {
       let latFinal = row.lokasi_lat;
       let lngFinal = row.lokasi_lng;
 
-      if (row.settings_lokasi) {
+      if (row.status === 'Tidak Hadir') {
+        alamatText = "-";
+        latFinal = null;
+        lngFinal = null;
+      } else if (row.settings_lokasi) {
         try {
           const loc = typeof row.settings_lokasi === 'string' ? JSON.parse(row.settings_lokasi) : row.settings_lokasi;
           if (loc.alamat) alamatText = loc.alamat;

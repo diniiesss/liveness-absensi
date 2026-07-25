@@ -369,7 +369,11 @@ const getRiwayatAbsensi = async (req, res) => {
             let latFinal = row.lokasi_lat;
             let lngFinal = row.lokasi_lng;
 
-            if (row.settings_lokasi) {
+            if (row.status === 'Tidak Hadir') {
+                alamatText = "-";
+                latFinal = null;
+                lngFinal = null;
+            } else if (row.settings_lokasi) {
                 try {
                     const loc = typeof row.settings_lokasi === 'string' ? JSON.parse(row.settings_lokasi) : row.settings_lokasi;
                     if (loc.alamat) alamatText = loc.alamat;
@@ -511,9 +515,14 @@ const markAbsentStudentsDaily = async () => {
         const tglSekarang = dayjs().tz('Asia/Jakarta').format('YYYY-MM-DD');
         const jamSekarang = dayjs().tz('Asia/Jakarta').format('HH:mm:ss');
         
-        // 0. Cleanup record alpa salah tanggal akibat pergeseran offset UTC sebelumnya
+        // 0. Cleanup / Repair record alpa salah tanggal akibat pergeseran offset UTC sebelumnya
         try {
-            await pool.query("DELETE FROM absensi WHERE status = 'Tidak Hadir' AND DATE(waktu_absen AT TIME ZONE 'Asia/Jakarta') > $1::date", [tglSekarang]);
+            await pool.query(
+                `UPDATE absensi 
+                 SET waktu_absen = '2026-07-25 20:01:00+07' 
+                 WHERE status = 'Tidak Hadir' 
+                   AND (TO_CHAR(waktu_absen, 'YYYY-MM-DD') = '2026-07-26' OR TO_CHAR(waktu_absen, 'HH24:MI') = '03:00' OR TO_CHAR(waktu_absen, 'HH24:MI') = '20:00')`
+            );
         } catch(e) {}
 
         // 1. Cari seluruh sesi perkuliahan yang HARI AKTIF-nya sudah terjadi / hari ini dan JAM SELESAI-nya sudah lewat
@@ -570,10 +579,10 @@ const markAbsentStudentsDaily = async () => {
                     [student.npm, kode_matkul, sessionDateStr]
                 );
 
-                // 4. Jika terbukti bolos/tidak scan wajah sampai jam_selesai lewat, tandai 'Tidak Hadir'
+                // 4. Jika terbukti bolos/tidak scan wajah sampai jam_selesai lewat, tandai 'Tidak Hadir' (Jam Selesai + 1 Menit)
                 if (checkAbsen.rows.length === 0) {
                     const jamSelesaiStr = jam_selesai ? String(jam_selesai).substring(0, 8) : "23:59:59";
-                    const waktuAbsenFinal = dayjs.tz(`${sessionDateStr} ${jamSelesaiStr}`, 'Asia/Jakarta').format('YYYY-MM-DDTHH:mm:ss+07:00');
+                    const waktuAbsenFinal = dayjs.tz(`${sessionDateStr} ${jamSelesaiStr}`, 'Asia/Jakarta').add(1, 'minute').format('YYYY-MM-DDTHH:mm:ss+07:00');
 
                     await mahasiswaModel.insertAbsensi({
                         npm: student.npm,
