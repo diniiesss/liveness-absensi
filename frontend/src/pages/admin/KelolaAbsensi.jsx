@@ -290,7 +290,7 @@ const KelolaAbsensi = () => {
           {/* Logo Kampus untuk Mobile */}
           <img src={logoImage} alt="Logo Kampus" className="w-10 h-10 md:hidden object-contain" />
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-slate-800 leading-none">
-            Kelola <br /> <span className="text-[#52426b]">Presensi</span>
+            Kelola <br /> <span className="text-[#52426b]">Absensi</span>
           </h2>
         </div>
       </div>
