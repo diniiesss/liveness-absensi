@@ -110,8 +110,7 @@ const absen = async (req, res) => {
         const student = await mahasiswaModel.getMahasiswaByNPM(npmDariToken);
         if (!student) return res.status(404).json({ message: 'Mahasiswa tidak ditemukan.' });
 
-        // FIXED MULTI-ADMIN: Menarik sesi presensi dosen yang memang membuka akses untuk KELAS mahasiswa ini
-        const adminRes = await pool.query(
+         const adminRes = await pool.query(
             `SELECT s.* 
              FROM admin_settings s
              WHERE EXISTS (SELECT 1 FROM unnest(s.allowed_kelas) k WHERE LOWER(TRIM(k)) = LOWER(TRIM($1)))
@@ -172,7 +171,6 @@ const absen = async (req, res) => {
 
         const statusAbsen = now.isAfter(startTime.add(settings.toleransi, 'minute')) ? 'Terlambat' : 'Hadir';
         
-        // FIXED: Menghapus baris "nama_matkul" agar tidak crash saat di-insert ke PostgreSQL
         await mahasiswaModel.insertAbsensi({
             npm: npmDariToken,
             status: statusAbsen,
@@ -520,7 +518,6 @@ const markAbsentStudentsDaily = async () => {
         const tglSekarang = dayjs().tz('Asia/Jakarta').format('YYYY-MM-DD');
         const jamSekarang = dayjs().tz('Asia/Jakarta').format('HH:mm:ss');
         
-        // 0. Cleanup / Repair record alpa salah tanggal akibat pergeseran offset UTC sebelumnya
         try {
             await pool.query(
                 `UPDATE absensi 
@@ -530,7 +527,6 @@ const markAbsentStudentsDaily = async () => {
             );
         } catch(e) {}
 
-        // 1. Cari seluruh sesi perkuliahan yang HARI AKTIF-nya sudah terjadi / hari ini dan JAM SELESAI-nya sudah lewat
         const activeSessions = await pool.query(
             `SELECT s.kode_matkul, s.allowed_kelas, s.admin_id, s.hari_aktif, s.jam_selesai, mk.nama_matkul 
              FROM admin_settings s
@@ -544,7 +540,6 @@ const markAbsentStudentsDaily = async () => {
             return; 
         }
 
-        // Looping untuk setiap sesi yang sudah berakhir
         for (const session of activeSessions.rows) {
             const { kode_matkul, allowed_kelas, nama_matkul, hari_aktif, jam_selesai } = session;
             if (!allowed_kelas) continue;
@@ -566,8 +561,7 @@ const markAbsentStudentsDaily = async () => {
 
             const sessionDateStr = dayjs(hari_aktif).format('YYYY-MM-DD');
 
-            // 2. Ambil seluruh mahasiswa aktif yang kelasnya cocok (case & whitespace insensitive)
-            const studentRes = await pool.query(
+           const studentRes = await pool.query(
                 `SELECT npm, nama, kelas FROM mahasiswa 
                  WHERE is_active = true 
                    AND EXISTS (
@@ -578,13 +572,11 @@ const markAbsentStudentsDaily = async () => {
             );
 
             for (const student of studentRes.rows) {
-                // 3. Cek apakah mahasiswa ini sudah absen di matkul tersebut pada tanggal hari_aktif sesi ini
                 const checkAbsen = await pool.query(
                     'SELECT id FROM absensi WHERE npm = $1 AND kode_matkul = $2 AND DATE(waktu_absen) = $3',
                     [student.npm, kode_matkul, sessionDateStr]
                 );
 
-                // 4. Jika terbukti bolos/tidak scan wajah sampai jam_selesai lewat, tandai 'Tidak Hadir' (Jam Selesai + 1 Menit)
                 if (checkAbsen.rows.length === 0) {
                     const jamSelesaiStr = jam_selesai ? String(jam_selesai).substring(0, 8) : "23:59:59";
                     const waktuAbsenFinal = dayjs.tz(`${sessionDateStr} ${jamSelesaiStr}`, 'Asia/Jakarta').add(1, 'minute').format('YYYY-MM-DD HH:mm:ss');

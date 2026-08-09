@@ -13,11 +13,11 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor global penanganan token expired (401 / 403) -> Auto Logout & Redirect
+// Interceptor global penanganan token expired (401) -> Auto Logout & Redirect
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (error.response && error.response.status === 401) {
       const url = error.config?.url || "";
       const isAuthApi = url.includes('/login') || url.includes('/register') || url.includes('/check-npm') || url.includes('/check-face');
       
