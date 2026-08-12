@@ -22,6 +22,12 @@ axios.interceptors.response.use(
       const isAuthApi = url.includes('/login') || url.includes('/register') || url.includes('/check-npm') || url.includes('/check-face');
       
       if (!isAuthApi) {
+        // Tampilkan pemberitahuan sebelum mengalihkan
+        if (!window.sessionAlertShown) {
+          window.sessionAlertShown = true;
+          alert('Sesi Anda telah berakhir, silakan login kembali');
+        }
+
         // Hapus token dari localStorage
         localStorage.removeItem('mahasiswa_token');
         localStorage.removeItem('admin_token');

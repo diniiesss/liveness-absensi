@@ -87,7 +87,7 @@ const Login = () => {
               <p className="text-gray-300 text-sm font-bold capitalize tracking-widest mt-1">Silakan masuk ke akun Anda</p>
             </div>
 
-            <div className="space-y-5">
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
               {/* Input Identifier */}
               <div className="group">
                 <div className="relative">
@@ -125,7 +125,7 @@ const Login = () => {
 
               {/* Button Masuk */}
               <button
-                onClick={handleLogin}
+                type="submit"
                 disabled={loading}
                 className="w-full bg-[#e4d6f7] text-[#52426b] font-bold py-5 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 disabled:bg-gray-200 mt-4 uppercase text-[14px] tracking-widest"
               >
@@ -137,6 +137,7 @@ const Login = () => {
               {/* LUPA PASSWORD DI BAWAH BUTTON */}
               <div className="text-center pt-2">
                 <button 
+                  type="button"
                   onClick={() => setShowForgotPasswordModal(true)} 
                   className="text-[12px] font-bold text-[#e4d6f7] uppercase tracking-widest hover:text-[#f2e6ff] transition-colors"
                 >
@@ -149,7 +150,7 @@ const Login = () => {
                   {status}
                 </div>
               )}
-            </div>
+            </form>
           </div>
         </div>
 

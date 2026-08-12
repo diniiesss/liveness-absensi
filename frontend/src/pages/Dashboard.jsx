@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [mahasiswaData, setMahasiswaData] = useState({ nama: "MEMUAT...", kelas: "..." });
   const [campusConfig, setCampusConfig] = useState({ 
     latitude: 0, longitude: 0, radius: 0, 
-    nama_matkul: "", kode_matkul: "", isLoaded: false 
+    nama_matkul: "", kode_matkul: "", jam_masuk: "", jam_selesai: "", isLoaded: false 
   });
   const [userPos, setUserPos] = useState(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -58,9 +58,12 @@ const Dashboard = () => {
   const [warningNotice, setWarningNotice] = useState("");
   const [locationAllowed, setLocationAllowed] = useState(false);
   const [isTimeValid, setIsTimeValid] = useState(false);
+  const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isAlreadyAttended, setIsAlreadyAttended] = useState(false);
   const [isScanning, setIsScanning] = useState(false); 
   const [scanFailed, setScanFailed] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   const token = localStorage.getItem('mahasiswa_token');
   const npm = localStorage.getItem("npm");
@@ -127,10 +130,13 @@ const Dashboard = () => {
           setCampusConfig(prev => ({ 
             ...prev, 
             isLoaded: true,
-            nama_matkul: "Belum ada sesi aktif" 
+            nama_matkul: "Belum ada sesi aktif",
+            jam_masuk: "",
+            jam_selesai: ""
           }));
           setStatus("❌ Belum ada sesi presensi dari Admin");
           setIsTimeValid(false);
+          setHasActiveSession(false);
           return;
         }
 
@@ -142,10 +148,13 @@ const Dashboard = () => {
           radius: settings.radius, 
           nama_matkul: settings.nama_matkul,
           kode_matkul: settings.kode_matkul,
+          jam_masuk: settings.jam_masuk,
+          jam_selesai: settings.jam_selesai,
           isLoaded: true 
         });
 
         setIsTimeValid(timeRes.data.valid);
+        setHasActiveSession(true);
         setIsAlreadyAttended(statusRes.data.alreadyAttended);
 
         if (statusRes.data.alreadyAttended) {
@@ -229,6 +238,11 @@ const Dashboard = () => {
       setStatus("✅ Berhasil");
       setWarningNotice("");
       setIsAlreadyAttended(true);
+      setSuccessData({
+        waktu: res.data.waktu || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        status: res.data.status || "Hadir"
+      });
+      setShowSuccessModal(true);
       setTimeout(() => stopCamera(), 3000);
     } catch (err) {
       const msg = err.response?.data?.message || "Gagal Absen";
@@ -426,15 +440,21 @@ const Dashboard = () => {
               {!isScanning && !scanFailed && (
                 <button 
                   onClick={startAbsensi} 
-                  disabled={isAlreadyAttended || !isTimeValid}
+                  disabled={isAlreadyAttended || !hasActiveSession || !isTimeValid}
                   className={`w-full py-5 rounded-[2rem] font-bold text-m uppercase tracking-widest transition-all shadow-md
                     ${isAlreadyAttended 
                       ? 'bg-[#F8F4FF] text-[#8B8396] cursor-not-allowed' 
-                      : !isTimeValid
+                      : (!hasActiveSession || !isTimeValid)
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                         : 'bg-[#52426b] text-white hover:scale-[1.02] active:scale-95'}`}
                 >
-                  {isAlreadyAttended ? "Sesi Berhasil Tercatat ✅" : "Mulai Absensi"}
+                  {isAlreadyAttended 
+                    ? "Sesi Berhasil Tercatat ✅" 
+                    : !hasActiveSession 
+                      ? "❌ Tidak Ada Sesi Absensi" 
+                      : !isTimeValid 
+                        ? "❌ Sesi Absensi Sudah Berakhir" 
+                        : "Mulai Absensi"}
                 </button>
               )}
 
@@ -473,7 +493,14 @@ const Dashboard = () => {
                   <BookOpen size={20} className="text-[#e4d6f3]" />
                   <span className="text-[12px] font-black uppercase tracking-widest text-[#e4d6f3] leading-none">Mata Kuliah</span>
                 </div>
-                <span className="font-bold text-sm text-[#e4d6f3] truncate max-w-[150px]">{campusConfig.nama_matkul || "---"}</span>
+                <div className="text-right">
+                  <span className="font-bold text-sm text-[#e4d6f3] block truncate max-w-[150px]">{campusConfig.nama_matkul || "---"}</span>
+                  {campusConfig.jam_masuk && campusConfig.jam_selesai && (
+                    <span className="text-[10px] text-gray-300 font-black block mt-1 uppercase tracking-wider">
+                      Sesi: {campusConfig.jam_masuk.substring(0, 5)} - {campusConfig.jam_selesai.substring(0, 5)} WIB
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* SESI ABSENSI */}
@@ -554,6 +581,46 @@ const Dashboard = () => {
 
         </div>
       </div>
+
+      {/* SUCCESS MODAL POP-UP */}
+      {showSuccessModal && successData && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#f2e6ff] rounded-[3rem] p-10 max-w-sm w-full shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-inner animate-bounce">
+                <CheckCircle size={40} />
+              </div>
+              
+              <h3 className="text-2xl font-black text-[#3a2e4b] tracking-tight uppercase mb-2">Absen Berhasil!</h3>
+              <p className="text-[#52426b] text-sm font-black mb-1 uppercase tracking-wide">
+                {campusConfig.nama_matkul}
+              </p>
+              
+              <div className="bg-white/60 border border-purple-100 rounded-2xl p-4 w-full mb-8 text-left space-y-2 mt-4">
+                <div className="flex justify-between text-xs font-bold text-gray-500">
+                  <span>Waktu Absen:</span>
+                  <span className="text-[#3a2e4b] font-black">{successData.waktu} WIB</span>
+                </div>
+                <div className="flex justify-between text-xs font-bold text-gray-500">
+                  <span>Status Kehadiran:</span>
+                  <span className={`font-black uppercase tracking-wider ${successData.status === 'Hadir' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {successData.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="w-full">
+                <button 
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full bg-[#52426b] text-[#e4d6f3] font-black py-4 rounded-2xl shadow-xl hover:bg-[#3a2e4b] transition-all active:scale-95 text-xs uppercase tracking-widest"
+                >
+                  Selesai
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

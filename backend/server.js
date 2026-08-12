@@ -28,7 +28,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 cron.schedule('* * * * *', async () => {
     console.log(`[${new Date().toLocaleString()}] Mesin cron otomatis memeriksa seluruh sesi kuliah admin...`);
     try {
-        // Memanggil fungsi multi-admin yang bertugas menyeleksi matkul secara adil
         await mahasiswaController.markAbsentStudentsDaily();
     } catch (error) {
         console.error(`[${new Date().toLocaleString()}] Error pada mesin cron multi-admin:`, error);

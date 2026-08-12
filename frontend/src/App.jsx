@@ -69,6 +69,10 @@ function AppContent() {
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
+          if (!window.sessionAlertShown) {
+            window.sessionAlertShown = true;
+            alert('Sesi Anda telah berakhir, silakan login kembali');
+          }
           localStorage.clear();
           navigate('/login');
         }

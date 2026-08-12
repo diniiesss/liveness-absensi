@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { User, IdCard, School, BookOpen, Lock, ArrowRight, Loader2, CheckCircle2, ChevronLeft, RefreshCw, X, ShieldAlert, Eye, EyeOff, Info } from "lucide-react";
+import { User, IdCard, School, BookOpen, Lock, ArrowRight, Loader2, CheckCircle2, ChevronLeft, ChevronDown, RefreshCw, X, ShieldAlert, Eye, EyeOff, Info } from "lucide-react";
 import * as faceapi from "face-api.js";
 import logoImage from '../components/logo.webp';
 import toast, { Toaster } from 'react-hot-toast';
@@ -241,21 +241,23 @@ const RegisterFace = () => {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <InputItem icon={School} name="kelas" placeholder="Kelas" onChange={(e) => setForm({...form, kelas: e.target.value})} value={form.kelas} />
-                    <div className="relative">
-                      <select name="fakultas" value={form.fakultas} onChange={(e) => setForm({...form, fakultas: e.target.value, jurusan: ""})} className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:border-black appearance-none">
-                        <option value="">Fakultas</option>
-                        {Object.keys(fakultasOptions).map(f => <option key={f} value={f}>{f}</option>)}
-                      </select>
-                    </div>
+                    <SearchableSelect 
+                      placeholder="Fakultas" 
+                      options={Object.keys(fakultasOptions)} 
+                      value={form.fakultas} 
+                      onChange={(val) => setForm({...form, fakultas: val, jurusan: ""})} 
+                    />
                   </div>
 
                   {form.fakultas && (
                     <div className="relative animate-in slide-in-from-top duration-300">
-                      <select name="jurusan" value={form.jurusan} onChange={(e) => setForm({...form, jurusan: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:outline-none focus:border-black appearance-none">
-                        <option value="">Pilih Jurusan</option>
-                        {fakultasOptions[form.fakultas].map(j => <option key={j} value={j}>{j}</option>)}
-                      </select>
-                      <BookOpen className="absolute left-4 top-4 text-gray-400" size={18} />
+                      <SearchableSelect 
+                        icon={BookOpen} 
+                        placeholder="Pilih Jurusan" 
+                        options={fakultasOptions[form.fakultas] || []} 
+                        value={form.jurusan} 
+                        onChange={(val) => setForm({...form, jurusan: val})} 
+                      />
                     </div>
                   )}
 
@@ -401,5 +403,81 @@ const InputItem = ({ icon: Icon, ...props }) => (
     <Icon className="absolute left-4 top-4 text-gray-400 group-focus-within:text-black transition-colors" size={18} />
   </div>
 );
+
+const SearchableSelect = ({ icon: Icon, placeholder, options, value, onChange, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    setSearchTerm(value || "");
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setSearchTerm(value || "");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [value]);
+
+  const filteredOptions = options.filter(opt =>
+    opt.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <div className="relative">
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setIsOpen(true);
+            if (e.target.value === "") {
+              onChange("");
+            }
+          }}
+          onFocus={() => {
+            if (!disabled) setIsOpen(true);
+          }}
+          disabled={disabled}
+          className={`w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 text-sm font-bold focus:outline-none focus:border-black transition-all ${Icon ? 'pl-12' : 'pl-4'} pr-10 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-text'}`}
+        />
+        {Icon && <Icon className="absolute left-4 top-4 text-gray-400" size={18} />}
+        <ChevronDown 
+          className={`absolute right-4 top-4 text-gray-400 pointer-events-none transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          size={18} 
+        />
+      </div>
+
+      {isOpen && !disabled && (
+        <ul className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-48 overflow-y-auto font-bold text-sm text-slate-800">
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((opt) => (
+              <li
+                key={opt}
+                onClick={() => {
+                  onChange(opt);
+                  setSearchTerm(opt);
+                  setIsOpen(false);
+                }}
+                className={`px-4 py-3 hover:bg-purple-100 hover:text-purple-700 cursor-pointer transition-colors text-left ${opt === value ? 'bg-purple-50 text-purple-600' : ''}`}
+              >
+                {opt}
+              </li>
+            ))
+          ) : (
+            <li className="px-4 py-3 text-gray-400 italic text-center">Tidak ditemukan</li>
+          )}
+        </ul>
+      )}
+    </div>
+  );
+};
 
 export default RegisterFace;

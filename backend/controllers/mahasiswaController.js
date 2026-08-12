@@ -179,11 +179,16 @@ const absen = async (req, res) => {
             kode_matkul: settings.kode_matkul
         });
 
-        res.status(201).json({ valid: true, message: `Absensi ${settings.nama_matkul} Berhasil!` });
+        res.status(201).json({ 
+            valid: true, 
+            message: `Absensi ${settings.nama_matkul} Berhasil!`,
+            status: statusAbsen,
+            waktu: now.format('HH:mm:ss')
+        });
     } catch (err) { res.status(500).json({ message: 'Error server absen.' }); }
 };
 
-// --- 4. CEK NPM ---
+//4. Cek NPM
 const checkNPM = async (req, res) => {
     try {
         const { npm } = req.body;
@@ -517,16 +522,6 @@ const markAbsentStudentsDaily = async () => {
     try {
         const tglSekarang = dayjs().tz('Asia/Jakarta').format('YYYY-MM-DD');
         const jamSekarang = dayjs().tz('Asia/Jakarta').format('HH:mm:ss');
-        
-        try {
-            await pool.query(
-                `UPDATE absensi 
-                 SET waktu_absen = '2026-07-25 20:01:00' 
-                 WHERE status = 'Tidak Hadir' 
-                   AND (TO_CHAR(waktu_absen, 'YYYY-MM-DD') = '2026-07-26' OR TO_CHAR(waktu_absen, 'HH24:MI') = '03:00' OR TO_CHAR(waktu_absen, 'HH24:MI') = '03:01' OR TO_CHAR(waktu_absen, 'HH24:MI') = '20:00')`
-            );
-        } catch(e) {}
-
         const activeSessions = await pool.query(
             `SELECT s.kode_matkul, s.allowed_kelas, s.admin_id, s.hari_aktif, s.jam_selesai, mk.nama_matkul 
              FROM admin_settings s
@@ -556,9 +551,7 @@ const markAbsentStudentsDaily = async () => {
                     kelasArr = allowed_kelas.split(',').map(k => k.trim()).filter(k => k !== "");
                 }
             }
-
             if (kelasArr.length === 0) continue;
-
             const sessionDateStr = dayjs(hari_aktif).format('YYYY-MM-DD');
 
            const studentRes = await pool.query(
