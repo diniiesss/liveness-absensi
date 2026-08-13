@@ -192,7 +192,7 @@ const RegisterFace = () => {
       <div className="w-full max-w-6xl bg-white rounded-[3.5rem] shadow-2xl shadow-gray-200/50 overflow-hidden flex flex-col md:flex-row border border-gray-100 min-h-[750px]">
         
         {/* KOLOM KIRI: LOGO */}
-        <div className="md:w-1/2 bg-[#f2e6ff] p-12 flex items-center justify-center relative border-r border-gray-50">
+        <div className="hidden md:flex md:w-1/2 bg-[#f2e6ff] p-12 items-center justify-center relative border-r border-gray-50">
           <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-100 rounded-full blur-[120px] opacity-40"></div>
           <img src={logoImage} alt="Logo" className="relative z-10 w-full max-w-[320px] drop-shadow-2xl" />
@@ -224,6 +224,8 @@ const RegisterFace = () => {
             {step === 1 && (
               <div className="animate-in fade-in slide-in-from-right duration-500">
                 <div className="mb-10 text-center">
+                  {/* Logo untuk Mobile */}
+                  <img src={logoImage} alt="Logo Universitas" className="w-24 h-24 mx-auto mb-6 object-contain block md:hidden drop-shadow-xl" />
                   <h2 className="text-4xl font-black text-[#e4d6f3] uppercase tracking-wide leading-none">Registrasi Akun</h2>
                   <p className="text-gray-300 text-sm font-bold capitalize tracking-widest mt-1">Validasi Data Mahasiswa</p>
                 </div>

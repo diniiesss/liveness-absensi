@@ -497,7 +497,7 @@ const Dashboard = () => {
                   <span className="font-bold text-sm text-[#e4d6f3] block truncate max-w-[150px]">{campusConfig.nama_matkul || "---"}</span>
                   {campusConfig.jam_masuk && campusConfig.jam_selesai && (
                     <span className="text-[10px] text-gray-300 font-black block mt-1 uppercase tracking-wider">
-                      Sesi: {campusConfig.jam_masuk.substring(0, 5)} - {campusConfig.jam_selesai.substring(0, 5)} WIB
+                      Waktu: {campusConfig.jam_masuk.substring(0, 5)} - {campusConfig.jam_selesai.substring(0, 5)} WIB
                     </span>
                   )}
                 </div>
