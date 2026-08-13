@@ -411,7 +411,7 @@ const ManajemenMahasiswa = () => {
 
       {/* --- MODAL EDIT IDENTITAS MAHASISWA --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-xl md:max-w-3xl rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="bg-[#3a2e4b] p-6 md:p-8 text-white flex justify-between items-center">
               <div><h3 className="text-xl md:text-2xl font-black uppercase tracking-wide leading-none">Edit Identitas</h3><p className="text-[10px] md:text-[12px] uppercase font-bold tracking-widest mt-2 text-slate-300">Sync Data Ke Database</p></div>
