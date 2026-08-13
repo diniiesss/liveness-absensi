@@ -306,7 +306,7 @@ const Riwayat = () => {
             </thead>
             <tbody className="text-[#52426b]">
               {loading ? (
-                <tr><td colSpan="4" className="text-center p-20 animate-pulse font-black text-[#F8F4FF] uppercase tracking-tight">Sinkronisasi Database...</td></tr>
+                <tr><td colSpan="4" className="text-center p-20 animate-pulse font-black text-[#F8F4FF] uppercase tracking-tight">Memuat Riwayat...</td></tr>
               ) : currentItems.length > 0 ? (
                 currentItems.map((h, i) => (
                   <tr key={i} className="bg-[#F8F4FF] hover:bg-[#F8F4FF] transition-all duration-300 rounded-2xl group">

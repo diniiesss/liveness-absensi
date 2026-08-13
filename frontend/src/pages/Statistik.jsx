@@ -257,7 +257,7 @@ const Statistik = () => {
           </div>
             <div className="flex-1 bg-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 mb-8 border border-white/10 min-h-[300px] flex items-end">
               {loading ? (
-                <div className="w-full h-full flex items-center justify-center text-gray-700 font-black tracking-widest text-xs uppercase animate-pulse italic text-center">Menghubungkan Database...</div>
+                <div className="w-full h-full flex items-center justify-center text-gray-700 font-black tracking-widest text-xs uppercase animate-pulse italic text-center">Memuat Frekuensi...</div>
               ) : (
                 <Bar data={barData} options={barOptions} />
               )}

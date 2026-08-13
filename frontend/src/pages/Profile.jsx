@@ -121,7 +121,7 @@ const Profile = () => {
 
   if (!user) return (
     <div className="p-10 text-center font-black animate-pulse uppercase tracking-widest text-gray-300 italic">
-      Connecting to Gunadarma Database...
+      Memuat Profil...
     </div>
   );
 
