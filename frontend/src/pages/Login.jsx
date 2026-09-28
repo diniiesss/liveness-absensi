@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { User, Lock, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import ForgotPasswordModal from "../pages/ForgotPasswordModal";
 import logoImage from '../components/logo.webp';
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
@@ -14,6 +15,15 @@ const Login = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("expired") === "true") {
+      // Clean up URL query param without reload
+      window.history.replaceState({}, document.title, window.location.pathname);
+      toast.error("Sesi Anda telah berakhir, silakan login kembali");
+    }
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);

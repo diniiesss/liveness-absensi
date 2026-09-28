@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 // --- KOMPONEN SIDEBAR & LAYOUT ---
 import Sidebar from './pages/Sidebar'; 
@@ -69,12 +69,17 @@ function AppContent() {
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
-          if (!window.sessionAlertShown) {
-            window.sessionAlertShown = true;
-            alert('Sesi Anda telah berakhir, silakan login kembali');
+          const url = error.config?.url || "";
+          const isAuthApi = url.includes('/login') || url.includes('/register') || url.includes('/check-npm') || url.includes('/check-face');
+          
+          if (!isAuthApi) {
+            if (!window.sessionAlertShown) {
+              window.sessionAlertShown = true;
+              toast.error('Sesi Anda telah berakhir, silakan login kembali');
+            }
+            localStorage.clear();
+            navigate('/login');
           }
-          localStorage.clear();
-          navigate('/login');
         }
         return Promise.reject(error);
       }

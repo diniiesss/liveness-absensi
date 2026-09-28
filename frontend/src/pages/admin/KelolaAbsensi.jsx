@@ -212,7 +212,6 @@ const KelolaAbsensi = () => {
     const rawAllowed = form.allowed_kelas;
     const allowedKelasStr = Array.isArray(rawAllowed) ? rawAllowed.join(", ") : (rawAllowed || "");
 
-    // Validasi Form
     const emptyFields = [];
     if (!form.kode_matkul) emptyFields.push("Mata Kuliah");
     if (!form.jam_masuk) emptyFields.push("Jam Masuk");
@@ -398,7 +397,9 @@ const KelolaAbsensi = () => {
                 style={{ height: '100%', width: '100%' }}
                 whenCreated={mapInstance => { mapRef.current = mapInstance }}
               >
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                <TileLayer 
+  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <LocationMarker />
                 {form.lokasi?.lat && form.lokasi?.lng && (
                   <Circle 

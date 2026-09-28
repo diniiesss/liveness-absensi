@@ -280,7 +280,7 @@ const Dashboard = () => {
     let loopCount = 0;
     let landmarkHistory = [];
     let descriptorRef = initialDescriptor;
-    const maxDurationLoops = 60; // Max 15 detik batas percobaan liveness
+    const maxDurationLoops = 60; 
 
     setStatus(challenges[currentStep].label);
     
@@ -301,7 +301,6 @@ const Dashboard = () => {
       ).withFaceLandmarks().withFaceExpressions().withFaceDescriptor();
 
       if (!det) {
-        // PERINGATAN HANYA DI KOTAK BAWAH FRAME (KAMERA TETAP BUKA, TANPA TOAST POPUP)
         setWarningNotice("⚠️ Wajah tidak terdeteksi jelas! Posisikan wajah di depan kamera & lepas masker/kacamata hitam.");
         return;
       }
@@ -310,7 +309,6 @@ const Dashboard = () => {
         descriptorRef = det.descriptor;
       }
 
-      // Cek variansi gerakan untuk mendeteksi foto statis / gambar layar HP
       const jaw = det.landmarks.getJawOutline();
       const nose = det.landmarks.getNose()[0];
       const faceW = jaw[16].x - jaw[0].x;

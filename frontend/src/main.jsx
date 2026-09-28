@@ -22,21 +22,18 @@ axios.interceptors.response.use(
       const isAuthApi = url.includes('/login') || url.includes('/register') || url.includes('/check-npm') || url.includes('/check-face');
       
       if (!isAuthApi) {
-        // Tampilkan pemberitahuan sebelum mengalihkan
-        if (!window.sessionAlertShown) {
-          window.sessionAlertShown = true;
-          alert('Sesi Anda telah berakhir, silakan login kembali');
-        }
-
         // Hapus token dari localStorage
         localStorage.removeItem('mahasiswa_token');
         localStorage.removeItem('admin_token');
         localStorage.removeItem('npm');
         localStorage.removeItem('admin_email');
         
-        // Redirect otomatis ke halaman login utama
+        // Redirect otomatis ke halaman login utama dengan query param untuk menampilkan toast
         if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+          if (!window.sessionAlertShown) {
+            window.sessionAlertShown = true;
+          }
+          window.location.href = '/login?expired=true';
         }
       }
     }
