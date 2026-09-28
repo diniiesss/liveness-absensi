@@ -533,7 +533,9 @@ const Dashboard = () => {
                   style={{ height: '100%', width: '100%' }}
                   dragging={true} scrollWheelZoom={true} zoomControl={true}
                 >
-                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                  <TileLayer 
+  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                   
                   {/* LOKASI PRESENSI KAMPUS DARI ADMIN */}
                   {campusConfig.latitude !== 0 && campusConfig.longitude !== 0 && (
